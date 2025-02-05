@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Distributed System Simulator</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/ace.js"></script>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .link {
+            stroke: #999;
+            stroke-opacity: 0.6;
+            stroke-width: 2px;
+        }
+
+        .node {
+            width: auto;
+            height: auto;
+            position: absolute;
+            z-index: 1;
+        }
+
+        .card {
+            width: 100%;
+            height: 100%;
+            border: 1px solid #ccc;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .node-card {
+            min-width: 100px;
+        }
+
+        #graph_svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        .bootstrap-card {
+            display: inline-block;
+            width: 100%;
+        }
+
+        #graph-container {
+            position: relative;
+            width: 100%;
+            height: 80vh;
+        }
+
+        svg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 0;
+        }
+
+
+        #code-editor {
+            height: 70vh;
+            width: auto;
+        }
+
+
+        .container {
+            max-width: 100vw;
+            width: 100vw;
+            padding: 0;
+            margin: 0;
+        }
+
+
+        .row {
+            margin: 10;
+            padding: 10;
+            width: 100%;
+            display: flex;
+        }
+
+
+        .col-sm-graph {
+            flex: 7;
+            padding: 0;
+        }
+
+        .col-sm-editor {
+            flex: 3;
+            padding: 0;
+        }
+
+
+        body {
+            margin: 0;
+            padding: 0;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <div class="row">
+            <div class="col-sm-graph">
+                <div class="card" id="graph-container">
+                    <svg id="graph_svg" style="display:block;"></svg>
+                </div>
+
+                <button type="button" class="btn btn-primary" onclick='drawGraph(circle(5))'>Circle</button>
+            </div>
+
+            <div class="col-sm-editor">
+                <div class="card">
+                    <div id="code-editor"></div>
+                </div>
+
+                <button type="button" class="btn btn-primary" onclick='step()''>Step</button>
+            </div>
+
+        </div>
+    </div>
+
+</body>
+
+<script src="{{ url_for('static', filename='scripts.js' ) }}"></script>
+
+                    <script>
+
+                        var editor = ace.edit("code-editor");
+                        editor.setTheme("ace/theme/monokai");
+                        editor.session.setMode("ace/mode/javascript");
+                        editor.resize();
+                        editor.setValue(`int leader = 0;
+int state = 0;
+int id = UID;
+int msg;
+if(state == 0)
+{ 
+    state = 1;
+    0->id;
+}
+else
+{   
+int msg;
+if(msgs.length >0)
+{
+msg = <-msgs;
+  if(msg == UID)
+  {
+      leader = 1;
+   }    
+   else
+   {  
+       if(msg >id )
+        {          
+            0->msg;  
+            id = msg;
+            
+        }   
+       
+   }
+}
+}`);
+
+                    </script>
+
+</html>
