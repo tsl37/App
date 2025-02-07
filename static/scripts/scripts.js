@@ -14,8 +14,8 @@ function drawGraph(data) {
         id: machine,
         state: data[machine].state,
         message_stack: data[machine].message_stack,
-        x: width / 2,  
-        y: height / 2  
+        x: width / 2,
+        y: height / 2
     }));
 
     const links = [];
@@ -30,7 +30,7 @@ function drawGraph(data) {
     const zoomGroup = svg.append("g").attr("id", "zoomGroup");
 
     const zoom = d3.zoom()
-        .scaleExtent([0.5, 5]) 
+        .scaleExtent([0.5, 5])
         .on("zoom", (event) => {
             zoomGroup.attr("transform", event.transform);
         });
@@ -40,8 +40,6 @@ function drawGraph(data) {
     const nodeCount = nodes.length;
     simulation = d3.forceSimulation(nodes);
 
- 
- 
     const nodeGroup = zoomGroup.append("g").attr("class", "nodes");
 
     const node = nodeGroup.selectAll(".node")
@@ -50,14 +48,13 @@ function drawGraph(data) {
         .attr("class", "node")
         .call(drag(simulation));
 
-    
-        const tempContainer = d3.select("body").append("div")
+    const tempContainer = d3.select("body").append("div")
         .style("visibility", "hidden")
         .style("position", "absolute")
         .style("top", "-9999px");
 
     const foreignObject = node.append("foreignObject")
-        .attr("width", 100)  
+        .attr("width", 100)
         .attr("height", 100)
         .html(d => {
             const cardHTML = `
@@ -72,12 +69,11 @@ function drawGraph(data) {
                     </div>
                 </div>
             `;
-            
+
             tempContainer.html(cardHTML);
             const cardWidth = tempContainer.node().offsetWidth;
             const cardHeight = tempContainer.node().offsetHeight;
 
-           
             d.width = cardWidth;
             d.height = cardHeight;
             console.log(d.width, d.height);
@@ -87,32 +83,32 @@ function drawGraph(data) {
     tempContainer.remove();
 
     node.each(function (d) {
-        d.width = d.width || 150; 
-        d.height = d.height || 100; 
+        d.width = d.width || 150;
+        d.height = d.height || 100;
     });
 
     zoomGroup.append("defs")
-    .append("marker")
-    .attr("id", "arrowhead")
-    .attr("viewBox", "0 -5 10 10")
-    .attr("refX", 10)
-    .attr("refY", 0)
-    .attr("markerWidth", 6)
-    .attr("markerHeight", 6)
-    .attr("orient", "auto")
-    .append("path")
-    .attr("d", "M0,-5L10,0L0,5")
-    .attr("fill", "black");
+        .append("marker")
+        .attr("id", "arrowhead")
+        .attr("viewBox", "0 -5 10 10")
+        .attr("refX", 10)
+        .attr("refY", 0)
+        .attr("markerWidth", 6)
+        .attr("markerHeight", 6)
+        .attr("orient", "auto")
+        .append("path")
+        .attr("d", "M0,-5L10,0L0,5")
+        .attr("fill", "black");
 
-const link = zoomGroup.append("g")
-    .attr("class", "links")
-    .selectAll("line")
-    .data(links)
-    .enter().append("line")
-    .attr("class", "link")
-    .attr("stroke", "black")
-    .attr("stroke-width", 4)
-    .attr("marker-end", "url(#arrowhead)");
+    const link = zoomGroup.append("g")
+        .attr("class", "links")
+        .selectAll("line")
+        .data(links)
+        .enter().append("line")
+        .attr("class", "link")
+        .attr("stroke", "black")
+        .attr("stroke-width", 4)
+        .attr("marker-end", "url(#arrowhead)");
 
     const avgNodeSize = d3.mean(nodes, d => Math.max(d.width, d.height));
     link_distance = avgNodeSize;
@@ -122,8 +118,8 @@ const link = zoomGroup.append("g")
     const repulsionScalingFactor = 1 / Math.sqrt(nodeCount);
 
     simulation.force("link", d3.forceLink(links)
-            .id(d => d.id)
-            .distance(baseLinkDistance * distanceScalingFactor))
+        .id(d => d.id)
+        .distance(baseLinkDistance * distanceScalingFactor))
         .force("charge", d3.forceManyBody()
             .strength(baseRepulsion * repulsionScalingFactor))
         .force("center", d3.forceCenter(width / 2, height / 2))
@@ -144,10 +140,10 @@ const link = zoomGroup.append("g")
                 const dy = y2 - y1;
                 const absDX = Math.abs(dx);
                 const absDY = Math.abs(dy);
-            
+
                 let offsetX = 0;
                 let offsetY = 0;
-            
+
                 if (absDX * boxHeight > absDY * boxWidth) {
                     offsetX = dx > 0 ? boxWidth / 2 : -boxWidth / 2;
                     offsetY = (offsetX * dy) / dx;
@@ -155,14 +151,13 @@ const link = zoomGroup.append("g")
                     offsetY = dy > 0 ? boxHeight / 2 : -boxHeight / 2;
                     offsetX = (offsetY * dx) / dy;
                 }
-            
-               
+
                 offsetX = Math.max(-boxWidth / 2, Math.min(boxWidth / 2, offsetX));
                 offsetY = Math.max(-boxHeight / 2, Math.min(boxHeight / 2, offsetY));
-            
+
                 return { offsetX, offsetY };
             };
-            
+
             const sourceOffset = getIntersection(
                 sourceNode.x,
                 sourceNode.y,
@@ -179,7 +174,7 @@ const link = zoomGroup.append("g")
                 targetNode.width,
                 targetNode.height
             );
-            
+
             d3.select(this)
                 .attr("x1", sourceNode.x + sourceOffset.offsetX)
                 .attr("y1", sourceNode.y + sourceOffset.offsetY)
@@ -213,7 +208,6 @@ const link = zoomGroup.append("g")
     }
 }
 
-
 function updateGraph(data) {
     machines = data;
 
@@ -224,7 +218,6 @@ function updateGraph(data) {
         }
     });
 
-   
     const tempContainer = d3.select("body").append("div")
         .style("visibility", "hidden")
         .style("position", "absolute")
@@ -247,33 +240,32 @@ function updateGraph(data) {
                     </div>
                 </div>
             `;
-           
+
             tempContainer.html(cardHTML);
             const cardWidth = tempContainer.node().offsetWidth;
             const cardHeight = tempContainer.node().offsetHeight;
 
-          
+
             d.width = cardWidth;
             d.height = cardHeight;
 
             return cardHTML;
         });
 
-   
+
     tempContainer.remove();
 
-   
     d3.selectAll(".node")
         .select("foreignObject")
-        .attr("width", d => d.width) 
-        .attr("height", d => d.height); 
+        .attr("width", d => d.width)
+        .attr("height", d => d.height);
 
-   
+
     const avgNodeSize = d3.mean(nodes, d => Math.max(d.width, d.height));
-    const newLinkDistance = avgNodeSize; 
+    const newLinkDistance = avgNodeSize;
     simulation.force("link").distance(newLinkDistance);
 
-   
+
     if (newLinkDistance !== link_distance) {
         link_distance = newLinkDistance;
         simulation.alpha(1).restart();
@@ -285,7 +277,6 @@ function fetchAndUpdateGraph() {
         .then(response => response.json())
         .then(data => updateGraph(data));
 }
-
 
 function step() {
 
@@ -325,6 +316,21 @@ function circle(numNodes) {
         };
     }
 
-    return machines;
+    node_editor.setValue(reverseGraph(machines));
 }
 
+function star(numNodes) {
+    let machines = {};
+
+    for (let i = 0; i < numNodes; i++) {
+        machines[i] = {
+            state: {},
+            neighbors: [
+                String(0)
+            ],
+            message_stack: []
+        };
+    }
+
+    node_editor.setValue(reverseGraph(machines));
+}
