@@ -11,21 +11,20 @@
     <link href="{{ url_for('static', filename='styles/styles.css' ) }}" rel="stylesheet">
 </head>
 
-<style>
-    
-</style>
-
 <body>
-         
+
     <div class="navbar">
-       
-        <label class = "label" id = "directedLabel">Undirected</label>
+
+        <label class="label" id="directedLabel">Undirected</label>
         <label class="toggle-switch">
-            <input id = "directedCheckbox"type="checkbox" />
+            <input id="directedCheckbox" type="checkbox" />
             <span class="slider"></span>
         </label>
-        <button onclick='circle(5)'>Circle</button>
-        <button onclick='star(5)'>Star</button>
+        
+        <input type="number" id="nodeCount" value="5" min="1" max="100">
+        <button onclick='circle(parseInt( document.getElementById("nodeCount").value))'>Circle</button>
+        <button onclick='star(parseInt( document.getElementById("nodeCount").value))'>Star</button>
+        <button onclick='full(parseInt( document.getElementById("nodeCount").value))'>Full</button>
         <button onclick='step()'>Step</button>
     </div>
 
@@ -48,116 +47,11 @@
 </body>
 
 <script src="{{ url_for('static', filename='scripts/scripts.js' ) }}"></script>
-
-<script>
-
-const checkbox = document.getElementById('directedCheckbox');
-
-checkbox.addEventListener('change', (event) => {
-  if (event.currentTarget.checked) {
-    document.getElementById('directedLabel').innerHTML = "Directed";
-  } else {
-    document.getElementById('directedLabel').innerHTML = "Undirected";
-  }
-})
-
-    var node_editor = ace.edit("node-editor");
-    node_editor.setTheme("ace/theme/monokai");
-    node_editor.session.setMode("ace/mode/javascript");
-    node_editor.getSession().on('change', function () {
-        update()
-    });
-
-    function createGraph(inputEdges) {
-        let machines = {};
-
-        inputEdges.forEach(edge => {
-
-            if (edge.length == 1) {
-                machines[edge[0]] = {
-                    id: edge[0],
-                    state: {},
-                    neighbors: [],
-                    message_stack: []
-                };
-
-            }
-            else if (edge.length == 2) {
-                node1 = edge[0];
-                node2 = edge[1];
-                machines[node1].neighbors.push(String(node2));
-                if(!checkbox.checked){
-                machines[node2].neighbors.push(String(node1));
-                }
-            }
-
-        });
-
-        return machines;
-    }
-
-    function update() {
-        var val = node_editor.getSession().getValue().trim();
-        var edges = val.split('\n').map(x => x.split(' ').map(x => parseInt(x)));
-        try {
-            var graph = createGraph(edges);
-            drawGraph(graph);
-        } catch (e) {
-            console.log(e);
-            console.log(edges);
-        }
-    }
-
-    function reverseGraph(machines) {
-        var nodes = Object.keys(machines);
-        var edges = [];
-        nodes.forEach(node => {
-            machines[node].neighbors.forEach(neighbor => {
-                edges.push([neighbor, node]);
-            });
-        });
-        console.log(nodes);
-        console.log(edges);
-        return nodes.join('\n')+ "\n" + edges.map(x => x.join(' ')).join('\n');
-         
-    }
-
-    var editor = ace.edit("code-editor");
-    editor.setTheme("ace/theme/monokai");
-    editor.session.setMode("ace/mode/javascript");
-    editor.resize();
-    editor.setValue(`int leader = 0;
-int state = 0;
-int id = UID;
-int msg;
-if(state == 0)
-{ 
-    state = 1;
-    0->id;
-}
-else
-{   
-int msg;
-if(msgs.length >0)
-{
-msg = <-msgs;
-  if(msg == UID)
-  {
-      leader = 1;
-   }    
-   else
-   {  
-       if(msg >id )
-        {          
-            0->msg;  
-            id = msg;
-            
-        }   
-       
-   }
-}
-}`);
-
-</script>
+<script src="{{ url_for('static', filename='scripts/graph_drawing.js' ) }}"></script>
+<script src="{{ url_for('static', filename='scripts/graph_update.js' ) }}"></script>
+<script src="{{ url_for('static', filename='scripts/graph_shapes.js' ) }}"></script>
+<script src="{{ url_for('static', filename='scripts/netwrok_comm.js' ) }}"></script>
+<script src="{{ url_for('static', filename='scripts/code_editor.js' ) }}"></script>
+<script src="{{ url_for('static', filename='scripts/node_editor.js' ) }}"></script>
 
 </html>
