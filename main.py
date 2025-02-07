@@ -6,38 +6,6 @@ import Node as nd
 from functools import reduce
 import Interpreter
 
-code = r"""int leader = 0;
-int state = 0;
-int id = UID;
-int msg;
-if(state == 0)
-{ 
-    state = 1;
-    0->id;
-}
-else
-{   
-int msg;
-if(msgs.length >0)
-{
-msg = <-msgs;
-  if(msg == UID)
-  {
-      leader = 1;
-   }    
-   else
-   {  
-       if(msg >id )
-        {          
-            0->msg;  
-            id = msg;
-            
-        }   
-       
-   }
-}
-}
-   """
 
 
 def merge_dictionaries(d1, d2):

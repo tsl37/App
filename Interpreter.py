@@ -1,7 +1,6 @@
 from lark import Lark, visitors, v_args, Token, Tree
 from pprint import pprint
 
-
 class ExecutionContext:
 
     def __init__(self, UID=0, variables={}, incoming_messages=[]):
@@ -38,14 +37,12 @@ class MyInterpreter(visitors.Interpreter):
         self.debug = True
 
     def get_var(self, name):
-        """Look for the variable in the current context and then traverse up the stack."""
         for context in reversed(self.call_stack):
             if name in context.variables:
                 return context.variables[name]
         raise ValueError(f"Undefined variable: {name}")
 
     def set_var(self, name, value):
-        """Set a variable in the current context or traverse up the stack to set it in an outer context."""
         for context in reversed(self.call_stack):
             if name in context.variables:
                 context.set_var(name, value)
