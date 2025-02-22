@@ -9,6 +9,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/ace.js"></script>
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <link href="{{ url_for('static', filename='styles/styles.css' ) }}" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/typescript/4.9.5/typescript.min.js"></script>
 </head>
 
 <body>
@@ -46,12 +47,15 @@
 
 </body>
 
-<script src="{{ url_for('static', filename='scripts/scripts.js' ) }}"></script>
-<script src="{{ url_for('static', filename='scripts/graph_drawing.js' ) }}"></script>
-<script src="{{ url_for('static', filename='scripts/graph_update.js' ) }}"></script>
-<script src="{{ url_for('static', filename='scripts/graph_shapes.js' ) }}"></script>
-<script src="{{ url_for('static', filename='scripts/netwrok_comm.js' ) }}"></script>
-<script src="{{ url_for('static', filename='scripts/code_editor.js' ) }}"></script>
-<script src="{{ url_for('static', filename='scripts/node_editor.js' ) }}"></script>
+
+<script src="{{ url_for('static', filename='dist/graph_drawing.js' ) }}"></script>
+<script src="{{ url_for('static', filename='dist/graph_update.js' ) }}"></script>
+<script src="{{ url_for('static', filename='dist/graph_shapes.js' ) }}"></script>
+<script src="{{ url_for('static', filename='dist/graph_node.js' ) }}"></script>
+<script src="{{ url_for('static', filename='dist/network_comm.js' ) }}"></script>
+<script src="{{ url_for('static', filename='dist/code_editor.js' ) }}"></script>
+<script src="{{ url_for('static', filename='dist/node_editor.js' ) }}"></script>
+<script src="{{ url_for('static', filename='dist/machine.js' ) }}"></script>
+<script src="{{ url_for('static', filename='dist/distributed_system.js' ) }}"></script>
 
 </html>

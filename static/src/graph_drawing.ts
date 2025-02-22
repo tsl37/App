@@ -1,10 +1,16 @@
 let container = d3.select("#graph-container");
-let nodes = [];
+let nodes: any;
 let machines = {};
-let simulation;
+let simulation:any;
 let link_distance = 50;
 
-function drawGraph(data) {
+function drawGraph(data: { [x: string]: {
+    
+    state: any;
+    message_stack: any; neighbors: any; 
+}; }) {
+    console.log("drawGraph");
+    console.log(data);
     const svg = d3.select("svg");
     const width = parseInt(svg.style("width"));
     const height = parseInt(svg.style("height"));
@@ -17,19 +23,23 @@ function drawGraph(data) {
         x: width / 2,
         y: height / 2
     }));
+    console.log("nodes");
+    console.log(nodes);
 
-    const links = [];
+    const links: any = [];
     Object.keys(data).forEach(machine => {
-        data[machine].neighbors.forEach(neighbor => {
-            links.push({ source: machine, target: neighbor });
+        data[machine].neighbors.forEach((neighbor: any) => {
+            links.push({ source: machine, target: neighbor.toString() });
         });
     });
+    console.log("links");
+    console.log(links);
 
     svg.selectAll("*").remove();
 
     const zoomGroup = svg.append("g").attr("id", "zoomGroup");
 
-    const zoom = d3.zoom()
+    const zoom :any= d3.zoom()
         .scaleExtent([0.5, 5])
         .on("zoom", (event) => {
             zoomGroup.attr("transform", event.transform);
@@ -46,7 +56,7 @@ function drawGraph(data) {
         .data(nodes)
         .enter().append("g")
         .attr("class", "node")
-        .call(drag(simulation));
+        .call(drag(simulation) as any);
 
     const tempContainer = d3.select("body").append("div")
         .style("visibility", "hidden")
@@ -56,7 +66,7 @@ function drawGraph(data) {
     const foreignObject = node.append("foreignObject")
         .attr("width", 100)
         .attr("height", 100)
-        .html(d => {
+        .html((d: any) => {
             const cardHTML = `
                 <div class="card bootstrap-card node-card">
                     <div class="card-body">
@@ -71,18 +81,21 @@ function drawGraph(data) {
             `;
 
             tempContainer.html(cardHTML);
-            const cardWidth = tempContainer.node().offsetWidth;
-            const cardHeight = tempContainer.node().offsetHeight;
-
-            d.width = cardWidth;
-            d.height = cardHeight;
-            console.log(d.width, d.height);
-            return cardHTML;
+            const tempNode = tempContainer.node();
+            if (tempNode) {
+                const cardWidth = tempNode.offsetWidth;
+                const cardHeight = tempNode.offsetHeight;
+                d.width = cardWidth;
+                d.height = cardHeight;
+                console.log(d.width, d.height);
+                return cardHTML;
+            }
+            return "";
         });
 
     tempContainer.remove();
 
-    node.each(function (d) {
+    node.each(function (d:any) {
         d.width = d.width || 150;
         d.height = d.height || 100;
     });
@@ -110,7 +123,7 @@ function drawGraph(data) {
         .attr("stroke-width", 4)
         .attr("marker-end", "url(#arrowhead)");
 
-    const avgNodeSize = d3.mean(nodes, d => Math.max(d.width, d.height));
+    const avgNodeSize = d3.mean(nodes,( d:any) => Math.max(d.width, d.height)) || 100;
     link_distance = avgNodeSize;
     const baseLinkDistance = link_distance;
     const baseRepulsion = -5000;
@@ -118,24 +131,24 @@ function drawGraph(data) {
     const repulsionScalingFactor = 1 / Math.sqrt(nodeCount);
 
     simulation.force("link", d3.forceLink(links)
-        .id(d => d.id)
+        .id((d:any) => d.id)
         .distance(baseLinkDistance * distanceScalingFactor))
         .force("charge", d3.forceManyBody()
             .strength(baseRepulsion * repulsionScalingFactor))
         .force("center", d3.forceCenter(width / 2, height / 2))
         .alpha(1)
-        .force("collision", d3.forceCollide().radius(d => {
+        .force("collision", d3.forceCollide().radius((d:any) => {
             return Math.max(d.width / 2, d.height / 2) + 10;
         }));
 
     simulation.on("tick", () => {
-        node.attr("transform", d => `translate(${d.x - d.width / 2},${d.y - d.height / 2})`);
+        node.attr("transform", (d :any) => `translate(${d.x - d.width / 2},${d.y - d.height / 2})`);
 
-        link.each(function (d) {
+        link.each(function (d:any) {
             const sourceNode = nodes[d.source.index];
             const targetNode = nodes[d.target.index];
 
-            const getIntersection = (x1, y1, x2, y2, boxWidth, boxHeight) => {
+            const getIntersection = (x1: number, y1: number, x2: number, y2: number, boxWidth: number, boxHeight: number) => {
                 const dx = x2 - x1;
                 const dy = y2 - y1;
                 const absDX = Math.abs(dx);
@@ -183,22 +196,22 @@ function drawGraph(data) {
         });
     });
 
-    function drag(simulation) {
-        function dragstarted(event, d) {
+    function drag(simulation: any) {
+        function dragstarted(event: any) {
             if (!event.active) simulation.alphaTarget(0.3).restart();
-            d.fx = d.x;
-            d.fy = d.y;
+            event.subject.fx = event.subject.x;
+            event.subject.fy = event.subject.y;
         }
 
-        function dragged(event, d) {
-            d.fx = event.x;
-            d.fy = event.y;
+        function dragged(event: any) {
+            event.subject.fx = event.x;
+            event.subject.fy = event.y;
         }
 
-        function dragended(event, d) {
+        function dragended(event: any) {
             if (!event.active) simulation.alphaTarget(0);
-            d.fx = null;
-            d.fy = null;
+            event.subject.fx = null;
+            event.subject.fy = null;
         }
 
         return d3.drag()

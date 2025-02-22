@@ -6,3 +6,4 @@ Soubor `Node.py` obsahuje třídní reprezentaci jednoho stroje v systému.
 Soubor `main.py` se používá ke spuštění serveru a zpracování komunikace s frontendem.
 
 Pro spuštění spusťte `main.py` ve virtuálním prostředí, stránka je pak dostupná ve výchozím nastavení na portu 5000.
+

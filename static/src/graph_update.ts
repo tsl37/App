@@ -1,7 +1,7 @@
-function updateGraph(data) {
+function updateGraph(data: any) {
     machines = data;
 
-    nodes.forEach(node => {
+    nodes.forEach((node: { id: string | number; state: any; message_stack: any; }) => {
         if (data[node.id]) {
             node.state = data[node.id].state;
             node.message_stack = data[node.id].message_stack;
@@ -16,7 +16,7 @@ function updateGraph(data) {
     d3.select(".nodes").selectAll(".node")
         .data(nodes)
         .select("foreignObject")
-        .html(d => {
+        .html((d:any) => {
             const cardHTML = `
                 <div class="card bootstrap-card node-card">
                     <div class="card-body">
@@ -32,12 +32,16 @@ function updateGraph(data) {
             `;
 
             tempContainer.html(cardHTML);
-            const cardWidth = tempContainer.node().offsetWidth;
-            const cardHeight = tempContainer.node().offsetHeight;
+            const tempNode = tempContainer.node();
+            if (tempNode) {
+                const cardWidth = tempNode.offsetWidth;
+                const cardHeight = tempNode.offsetHeight;
+                d.width = cardWidth;
+                d.height = cardHeight;
+            }
 
 
-            d.width = cardWidth;
-            d.height = cardHeight;
+          
 
             return cardHTML;
         });
@@ -47,11 +51,11 @@ function updateGraph(data) {
 
     d3.selectAll(".node")
         .select("foreignObject")
-        .attr("width", d => d.width)
-        .attr("height", d => d.height);
+        .attr("width", (d:any) => d.width)
+        .attr("height", (d:any)=> d.height);
 
 
-    const avgNodeSize = d3.mean(nodes, d => Math.max(d.width, d.height));
+    const avgNodeSize = d3.mean(nodes, (d:any) => Math.max(d.width, d.height))|| 100;
     const newLinkDistance = avgNodeSize;
     simulation.force("link").distance(newLinkDistance);
 
