@@ -2,3 +2,4 @@ venv/
 static/node_modules/
 __pycache__/
 App.code-workspace
+.vscode/

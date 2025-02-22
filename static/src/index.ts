@@ -1,5 +1,3 @@
-const testIterable: Iterable<number> = [1, 2, 3];
+let distributed_system: Distributed_System;
 
-for (const num of testIterable) {
-    console.log(num);
-}
+

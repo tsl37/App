@@ -1,6 +1,8 @@
-function updateGraph(data: any) {
-    machines = data;
-
+function updateGraph(system: Distributed_System) {
+    console.log("Updating graph");
+    console.log(system);
+    const data = distributed_system_to_object(system).machines;
+    
     nodes.forEach((node: { id: string | number; state: any; message_stack: any; }) => {
         if (data[node.id]) {
             node.state = data[node.id].state;

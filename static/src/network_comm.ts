@@ -1,85 +1,87 @@
 
 
-function fetchAndUpdateGraph() {
-    fetch('/update_state')
-        .then(response => response.json())
-        .then(data => updateGraph(data));
-}
-
-function step() {
+async function step() {
     const code = editor.getValue();
-    const payload = JSON.stringify({ code: code, machines: machines });
-    const data = fetch_next_step(payload);
-    updateGraph(data);
+    distributed_system.code = code;
+    const payload = JSON.stringify(distributed_system_to_json(distributed_system));
 
+    try {
+        const data: any = await fetch_next_step(payload);
+        console.log(data);
+        if (!data) {
+            console.error("Failed to fetch the next step.");
+            return;
+        }
+      
+        distributed_system = json_to_distributed_system({code: code, machines: data});
+        console.log(distributed_system);
+        updateGraph(distributed_system);
+    } catch (error) {
+        console.error("Error in step execution:", error);
+    }
 }
 
-function fetch_next_step(payload: string) {
-
-    
-    fetch('/execute_step', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: payload
-    })
-        .then(response => response.json())
-        .then(data  => {
-            return data;
-
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            return false;
+async function fetch_next_step(payload: string) {
+    try {
+        const response = await fetch('/execute_step', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: payload,
         });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        return data as any;
+    } catch (error) {
+        console.error("Error fetching next step:", error);
+        return null;
+    }
 }
 
 function json_to_distributed_system(json: { code: any; machines: any; }) {
     const system = new Distributed_System(json.code);
-    const nodes = new Map();
+    var machines: any = Object.entries(json.machines) ;
+    console.log(machines);
 
-    json.machines.forEach((machine: { id: string; state: {};neighbors:[any]; message_stack: []; }) => {
-        const node = new Machine(machine.id, machine.state, machine.message_stack);
-        nodes.set(machine.id, node);
-        system.graph.addNode(machine.id);
+    machines.forEach((machine: any) => {
+        console.log(machine);
+        const node = new Machine(machine[0], machine[1].state, machine[1].message_stack);
+        system.graph.addNode(node);
     });
+    console.log(nodes);
 
-    json.machines.forEach((machine: { id: any; neighbors: any[]; }) => {
-        const node = nodes.get(machine.id);
-        machine.neighbors.forEach((neighborId: any) => {
-            const neighborNode = nodes.get(neighborId);
-            if (neighborNode) {
-                system.graph.addEdge(node, neighborNode);
-            }
+    machines.forEach((machine:any) => {
+        machine[1].neighbors.forEach((neighborId: any) => {
+    
+                system.graph.addEdge(machine[0], neighborId);
+
         });
     });
-
+    console.log("sytsme");
+    console.log(system);
     return system;
 }
 
 
 function distributed_system_to_json(system: { graph: { nodes: any; }; code: any; }) {
-    const machines: { id: any; state: any; neighbors: any[]; message_stack: any; }[] = [];
+    const machines: any = {};
+
     const nodes = system.graph.nodes;
-    nodes.forEach((node: { id: any; state: any; message_stack: any; }) => {
+    nodes.forEach((node: { id: any; state: any; message_stack: any; neighbors: any }) => {
         const machine = {
             id: node.id,
             state: node.state,
-            neighbors: [],
+            neighbors: node.neighbors,
             message_stack: node.message_stack
         };
-        machines.push(machine);
+        machines[node.id] = machine;
     });
 
-    nodes.forEach((node: { id: any; neighbors: any[]; }) => {
-        const machine = machines.find(machine => machine.id === node.id);
-        node.neighbors.forEach((neighbor: { id: any; }) => {
-            if (machine) {
-                machine.neighbors.push(neighbor.id);
-            }
-        });
-    });
 
     return {
         code: system.code,
@@ -87,8 +89,8 @@ function distributed_system_to_json(system: { graph: { nodes: any; }; code: any;
     };
 }
 
-function distributed_system_to_object  (system: any) {
-    console.log(system.graph.nodes);
+function distributed_system_to_object(system: any) {
+
     return {
         code: system.code,
         machines: Object.fromEntries(system.graph.nodes)

@@ -21,7 +21,7 @@ class Graph {
         this.nodes = new Map();
     }
     addNode(node) {
-        this.nodes.set(node, new Graph_Node(node));
+        this.nodes.set(node.id, node);
     }
     removeNode(node) {
         this.nodes.delete(node.id);

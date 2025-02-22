@@ -1,70 +1,73 @@
 "use strict";
-function fetchAndUpdateGraph() {
-    fetch('/update_state')
-        .then(response => response.json())
-        .then(data => updateGraph(data));
-}
-function step() {
+async function step() {
     const code = editor.getValue();
-    const payload = JSON.stringify({ code: code, machines: machines });
-    const data = fetch_next_step(payload);
-    updateGraph(data);
+    distributed_system.code = code;
+    const payload = JSON.stringify(distributed_system_to_json(distributed_system));
+    try {
+        const data = await fetch_next_step(payload);
+        console.log(data);
+        if (!data) {
+            console.error("Failed to fetch the next step.");
+            return;
+        }
+        distributed_system = json_to_distributed_system({ code: code, machines: data });
+        console.log(distributed_system);
+        updateGraph(distributed_system);
+    }
+    catch (error) {
+        console.error("Error in step execution:", error);
+    }
 }
-function fetch_next_step(payload) {
-    fetch('/execute_step', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: payload
-    })
-        .then(response => response.json())
-        .then(data => {
+async function fetch_next_step(payload) {
+    try {
+        const response = await fetch('/execute_step', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: payload,
+        });
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        const data = await response.json();
         return data;
-    })
-        .catch(error => {
-        console.error('Error:', error);
-        return false;
-    });
+    }
+    catch (error) {
+        console.error("Error fetching next step:", error);
+        return null;
+    }
 }
 function json_to_distributed_system(json) {
     const system = new Distributed_System(json.code);
-    const nodes = new Map();
-    json.machines.forEach((machine) => {
-        const node = new Machine(machine.id, machine.state, machine.message_stack);
-        nodes.set(machine.id, node);
-        system.graph.addNode(machine.id);
+    var machines = Object.entries(json.machines);
+    console.log(machines);
+    machines.forEach((machine) => {
+        console.log(machine);
+        const node = new Machine(machine[0], machine[1].state, machine[1].message_stack);
+        system.graph.addNode(node);
     });
-    json.machines.forEach((machine) => {
-        const node = nodes.get(machine.id);
-        machine.neighbors.forEach((neighborId) => {
-            const neighborNode = nodes.get(neighborId);
-            if (neighborNode) {
-                system.graph.addEdge(node, neighborNode);
-            }
+    console.log(nodes);
+    machines.forEach((machine) => {
+        machine[1].neighbors.forEach((neighborId) => {
+            system.graph.addEdge(machine[0], neighborId);
         });
     });
+    console.log("sytsme");
+    console.log(system);
     return system;
 }
 function distributed_system_to_json(system) {
-    const machines = [];
+    const machines = {};
     const nodes = system.graph.nodes;
     nodes.forEach((node) => {
         const machine = {
             id: node.id,
             state: node.state,
-            neighbors: [],
+            neighbors: node.neighbors,
             message_stack: node.message_stack
         };
-        machines.push(machine);
-    });
-    nodes.forEach((node) => {
-        const machine = machines.find(machine => machine.id === node.id);
-        node.neighbors.forEach((neighbor) => {
-            if (machine) {
-                machine.neighbors.push(neighbor.id);
-            }
-        });
+        machines[node.id] = machine;
     });
     return {
         code: system.code,
@@ -72,7 +75,6 @@ function distributed_system_to_json(system) {
     };
 }
 function distributed_system_to_object(system) {
-    console.log(system.graph.nodes);
     return {
         code: system.code,
         machines: Object.fromEntries(system.graph.nodes)

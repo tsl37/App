@@ -1,6 +1,8 @@
 "use strict";
-function updateGraph(data) {
-    machines = data;
+function updateGraph(system) {
+    console.log("Updating graph");
+    console.log(system);
+    const data = distributed_system_to_object(system).machines;
     nodes.forEach((node) => {
         if (data[node.id]) {
             node.state = data[node.id].state;

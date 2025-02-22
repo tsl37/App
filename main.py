@@ -64,7 +64,7 @@ def execute_step():
 
     for machine in machines:
         tmp.append(machine.toDict())
-
+    
     return jsonify(reduce(merge_dictionaries, tmp))
 
 

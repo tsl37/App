@@ -27,12 +27,12 @@ node_editor.getSession().on('change', function () {
 function createGraph(inputEdges: any[]) {
     let machines: any= {};
     let distributed_system = new Distributed_System("");
-    console.log("inputEdges");
-    console.log(inputEdges);
+  
     inputEdges.forEach((edge: any) => {
         
         if (edge.length == 1) {
-           distributed_system.graph.addNode(edge[0]);
+           const node = new Machine(edge[0], {}, []);
+           distributed_system.graph.addNode(node);
 
         }
         else if (edge.length == 2) {
@@ -44,20 +44,16 @@ function createGraph(inputEdges: any[]) {
         }
 
     });
-    console.log("distributed_system");
-    console.log(distributed_system);
-    machines = distributed_system_to_object(distributed_system).machines;
-    console.log("machines");
-    console.log(machines);
-    return machines;
+   
+    return distributed_system;
 }
 
 function update() {
     var val = node_editor.getSession().getValue().trim();
     var edges = val.split('\n').map(x => x.split(' ').map(x => parseInt(x)));
-    
-        var graph = createGraph(edges);
-        drawGraph(graph);
+    var system = createGraph(edges);
+    distributed_system = system;
+    drawGraph(system);
   
 }
 
@@ -69,8 +65,7 @@ function reverseGraph(machines: { [key: string]: { state: {}; neighbors: string[
             edges.push([neighbor, node]);
         });
     });
-    console.log(nodes);
-    console.log(edges);
+  
     return nodes.join('\n') + "\n" + edges.map(x => x.join(' ')).join('\n');
 
 }

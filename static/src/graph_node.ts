@@ -26,8 +26,8 @@ class Graph {
         this.nodes = new Map();
     }
     
-    addNode(node: string) {
-        this.nodes.set(node, new Graph_Node(node));
+    addNode(node:Graph_Node) {
+        this.nodes.set(node.id, node);
     }
     
     removeNode(node: { id: string; }) {
