@@ -48,13 +48,15 @@ function createGraph(inputEdges: any[]) {
     return distributed_system;
 }
 
+//Update the graph after the user has made changes in the editor
 function update() {
     var val = node_editor.getSession().getValue().trim();
     var edges = val.split('\n').map(x => x.split(' ').map(x => parseInt(x)));
     var system = createGraph(edges);
-    distributed_system = system;
+    global_context.distributed_system_states[0] = system;
+    clean_graph();
     drawGraph(system);
-  
+   
 }
 
 function reverseGraph(machines: { [key: string]: { state: {}; neighbors: string[]; message_stack: never[]; } }) {

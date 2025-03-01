@@ -1,5 +1,6 @@
 import json
 from pprint import pprint
+from flaskwebgui import FlaskUI
 from flask import Flask, jsonify, render_template, request
 import random
 import Node as nd
@@ -40,6 +41,7 @@ def create_machines_from_json(json_data):
     return list(machines_dict.values())
 
 app = Flask(__name__)
+ui = FlaskUI(app)
 
 def update_machine_states(machines):
     for machine in machines:
@@ -73,5 +75,6 @@ def index():
     return render_template("index.html")
 
 if __name__ == "__main__":
-
     app.run(debug=True)
+    #FlaskUI(app=app, server="flask").run()
+    

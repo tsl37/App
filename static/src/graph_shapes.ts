@@ -20,7 +20,15 @@ function star(numNodes: number) {
     let machines:any = [];
     console.log("star");
 
-    for (let i = 0; i < numNodes; i++) {
+    machines[0] = {
+        state: {},
+        neighbors: [
+            ...Array.from({ length: numNodes - 1 }, (_, j) => j + 1)
+        ],
+        message_stack: []
+    };
+
+    for (let i = 1; i < numNodes; i++) {
         machines[i] = {
             state: {},
             neighbors: [
@@ -40,7 +48,7 @@ function full(numNodes: number) {
         machines[i] = {
             state: {},
             neighbors: [
-                ...Array.from({ length: numNodes }, (_, j) => j)
+                ...Array.from({ length: numNodes }, (_, j) => j).filter(j => j !== i)
             ],
             message_stack: []
         };

@@ -178,4 +178,23 @@ function drawGraph(system) {
         .attr("d", "M0,-5L10,0L0,5")
         .attr("fill", "black");
     add_links(zoomGroup, links, node, width, height, nodeCount);
+    const resizeObserver = new ResizeObserver(() => {
+        const newWidth = parseInt(container.style("width"));
+        const newHeight = parseInt(container.style("height"));
+        svg.attr("width", newWidth).attr("height", newHeight);
+        simulation.force("center", d3.forceCenter(newWidth / 2, newHeight / 2));
+        simulation.alpha(1).restart();
+    });
+    resizeObserver.observe(container.node());
+}
+function clean_graph() {
+    const svg = d3.select("svg");
+    svg.selectAll("*").remove();
+    if (simulation) {
+        simulation.stop();
+    }
+    nodes = [];
+    machines = {};
+    simulation = null;
+    link_distance = 50;
 }

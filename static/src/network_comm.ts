@@ -1,10 +1,20 @@
 
-
-async function step() {
+function step_back(){
+    var current_step = global_context.current_step;
+    if(current_step > 0){
+        current_step--;
+        global_context.current_step = current_step;
+        updateGraph(global_context.distributed_system_states[current_step]);
+    }
+}
+async function step_forward() {
+    var current_step = global_context.current_step;
+    var distributed_system = global_context.distributed_system_states[current_step];
+    if(current_step === global_context.steps) {
+       
     const code = editor.getValue();
     distributed_system.code = code;
     const payload = JSON.stringify(distributed_system_to_json(distributed_system));
-
     try {
         const data: any = await fetch_next_step(payload);
         console.log(data);
@@ -12,12 +22,22 @@ async function step() {
             console.error("Failed to fetch the next step.");
             return;
         }
-      
         distributed_system = json_to_distributed_system({code: code, machines: data});
         console.log(distributed_system);
         updateGraph(distributed_system);
+        current_step++;
+        global_context.current_step = current_step;
+        global_context.steps++;
+        global_context.distributed_system_states[current_step] = distributed_system;
+        
     } catch (error) {
         console.error("Error in step execution:", error);
+    }
+    }
+    else {
+        current_step++;
+        global_context.current_step = current_step;
+        updateGraph(global_context.distributed_system_states[current_step]);
     }
 }
 

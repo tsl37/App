@@ -36,6 +36,11 @@ class Graph {
     }
     
     addEdge(node1:string, node2:string) {
+        
+        if(node1 === node2) {
+            return;
+        }
+
         const node = this.nodes.get(node1);
         if (node) {
             node.addEdge(node2);

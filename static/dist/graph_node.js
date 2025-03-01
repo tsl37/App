@@ -28,6 +28,9 @@ class Graph {
         this.nodes.forEach((n) => n.removeEdge(node));
     }
     addEdge(node1, node2) {
+        if (node1 === node2) {
+            return;
+        }
         const node = this.nodes.get(node1);
         if (node) {
             node.addEdge(node2);
