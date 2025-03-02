@@ -1,7 +1,6 @@
 "use strict";
 function circle(numNodes) {
     let machines = {};
-    console.log(numNodes);
     for (let i = 0; i < numNodes; i++) {
         machines[String(i)] = {
             state: {},
@@ -15,7 +14,6 @@ function circle(numNodes) {
 }
 function star(numNodes) {
     let machines = [];
-    console.log("star");
     machines[0] = {
         state: {},
         neighbors: [

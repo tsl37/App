@@ -6,6 +6,8 @@ from grammar import grammar
 
 parser = Lark(grammar)
 
+trees = {}
+
 class Node:
     state = 0
     neighbors = []
@@ -46,7 +48,9 @@ class Node:
         self.incoming_messages = []
 
     def executeCode(self):
-        tree = parser.parse(self.code)
+        if(trees.get(self.code) is None):
+            trees[self.code] = parser.parse(self.code)
+        tree = trees[self.code]
         
         context = ExecutionContext(
             UID=self.UID,

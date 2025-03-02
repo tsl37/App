@@ -183,8 +183,9 @@ function drawGraph(system) {
         const newHeight = parseInt(container.style("height"));
         svg.attr("width", newWidth).attr("height", newHeight);
         simulation.force("center", d3.forceCenter(newWidth / 2, newHeight / 2));
-        simulation.alpha(1).restart();
+        simulation.alpha(0.2).restart();
     });
+    simulation.alpha(1).tick(2000);
     resizeObserver.observe(container.node());
 }
 function clean_graph() {

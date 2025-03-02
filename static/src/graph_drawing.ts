@@ -237,6 +237,7 @@ function drawGraph(system: Distributed_System) {
         .attr("fill", "black");
 
     add_links(zoomGroup, links, node, width, height, nodeCount);
+
     const resizeObserver = new ResizeObserver(() => {
         const newWidth = parseInt(container.style("width"));
         const newHeight = parseInt(container.style("height"));
@@ -244,9 +245,11 @@ function drawGraph(system: Distributed_System) {
         svg.attr("width", newWidth).attr("height", newHeight);
 
         simulation.force("center", d3.forceCenter(newWidth / 2, newHeight / 2));
-        simulation.alpha(1).restart();
+        simulation.alpha(0.2).restart();
       
     });
+
+    simulation.alpha(1).tick(2000);
 
     resizeObserver.observe(container.node() as Element);
 

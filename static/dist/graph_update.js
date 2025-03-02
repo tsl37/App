@@ -1,7 +1,5 @@
 "use strict";
 function updateGraph(system) {
-    console.log("Updating graph");
-    console.log(system);
     const data = distributed_system_to_object(system).machines;
     nodes.forEach((node) => {
         if (data[node.id]) {

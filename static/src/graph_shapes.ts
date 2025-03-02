@@ -1,6 +1,6 @@
 function circle(numNodes: number) {
     let machines: { [key: string]: { state: {}; neighbors: string[]; message_stack: never[]; } } = {};
-    console.log(numNodes);
+  
 
     for (let i = 0; i < numNodes; i++) {
 
@@ -18,7 +18,7 @@ function circle(numNodes: number) {
 
 function star(numNodes: number) {
     let machines:any = [];
-    console.log("star");
+   
 
     machines[0] = {
         state: {},

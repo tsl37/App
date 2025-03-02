@@ -1,5 +1,6 @@
 import json
 from pprint import pprint
+import time
 from flaskwebgui import FlaskUI
 from flask import Flask, jsonify, render_template, request
 import random
@@ -55,6 +56,7 @@ def update_machine_states(machines):
 
 @app.route("/execute_step", methods=["POST"])
 def execute_step():
+    start_time = time.time()
     data = request.get_json()
 
     machines = create_machines_from_json(data)
@@ -66,7 +68,8 @@ def execute_step():
 
     for machine in machines:
         tmp.append(machine.toDict())
-    
+    end_time = time.time()
+    print(f"Execution time: {end_time - start_time} seconds")
     return jsonify(reduce(merge_dictionaries, tmp))
 
 
@@ -76,5 +79,5 @@ def index():
 
 if __name__ == "__main__":
     app.run(debug=True)
-    #FlaskUI(app=app, server="flask").run()
+    #FlaskUI(app=app, server="flask",).run()
     
