@@ -1,6 +1,5 @@
 const checkbox:any = document.getElementById('directedCheckbox');
 
-
 if (checkbox) {
     checkbox.addEventListener('change', (event:any) => {
     if (event.currentTarget?.checked) {
@@ -15,7 +14,6 @@ if (checkbox) {
         }
     }});
 }
-
 
 var node_editor = ace.edit("node-editor");
 node_editor.setTheme("ace/theme/monokai");
@@ -48,7 +46,24 @@ function createGraph(inputEdges: any[]) {
     return distributed_system;
 }
 
-//Update the graph after the user has made changes in the editor
+function string_to_adj_list()
+{
+    var nodes: { [key: number]: number[] } = {};
+    var val = node_editor.getSession().getValue().trim();
+    var edges = val.split('\n').map(x => x.split(' ').map(x => parseInt(x)));
+    edges.sort((a,b)=>a.length-b.length);
+    edges.forEach((edge: any) => {
+        if (edge.length == 1) {
+            nodes[edge[0]] = [];
+        }
+        else if (edge.length == 2) {
+            nodes[edge[0]].push(edge[1]);
+        }
+    });
+
+    return nodes;
+}
+
 function update() {
     var val = node_editor.getSession().getValue().trim();
     var edges = val.split('\n').map(x => x.split(' ').map(x => parseInt(x)));
@@ -56,18 +71,7 @@ function update() {
     global_context.distributed_system_states[0] = system;
     clean_graph();
     drawGraph(system);
-   
 }
 
-function reverseGraph(machines: { [key: string]: { state: {}; neighbors: string[]; message_stack: never[]; } }) {
-    var nodes = Object.keys(machines);
-    var edges: any[][] = [];
-    nodes.forEach(node => {
-        machines[node].neighbors.forEach((neighbor: any) => {
-            edges.push([neighbor, node]);
-        });
-    });
-  
-    return nodes.join('\n') + "\n" + edges.map(x => x.join(' ')).join('\n');
 
-}
+

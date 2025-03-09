@@ -1,47 +1,80 @@
 "use strict";
-function circle(numNodes) {
-    let machines = {};
-    for (let i = 0; i < numNodes; i++) {
-        machines[String(i)] = {
-            state: {},
-            neighbors: [
-                String((i - 1 + numNodes) % numNodes)
-            ],
-            message_stack: []
-        };
+function graph_to_string(nodes) {
+    var output = "";
+    output += Object.keys(nodes).join("\n") + "\n";
+    output += Object.entries(nodes).map((x) => x[1].map((y) => x[0].toString() + " " + y.toString()).join("\n")).join("\n");
+    return output;
+}
+function randomise_button() {
+    node_editor.setValue(graph_to_string(randomiseUID(string_to_adj_list())));
+}
+function randomiseUID(nodes, range = 100) {
+    let originalKeys = Object.keys(nodes).map(Number);
+    let newKeys = new Set();
+    while (newKeys.size < originalKeys.length) {
+        let randNum = Math.floor(Math.random() * range);
+        newKeys.add(randNum);
     }
-    node_editor.setValue(reverseGraph(machines));
+    let keyMapping = Object.fromEntries(originalKeys.map((key, index) => [key, Array.from(newKeys)[index]]));
+    let newNodes = {};
+    for (let oldKey of originalKeys) {
+        newNodes[keyMapping[oldKey]] = nodes[oldKey].map(neighbor => keyMapping[neighbor]);
+    }
+    return newNodes;
+}
+function circle(numNodes) {
+    let nodes = {};
+    for (var i = 0; i < numNodes; i++)
+        nodes[i] = [];
+    for (let i = 0; i < numNodes; i++) {
+        nodes[i].push((i - 1 + numNodes) % numNodes);
+        if (!checkbox.checked) {
+            nodes[((i - 1 + numNodes) % numNodes)].push(i);
+        }
+    }
+    node_editor.setValue(graph_to_string(nodes));
 }
 function star(numNodes) {
-    let machines = [];
-    machines[0] = {
-        state: {},
-        neighbors: [
-            ...Array.from({ length: numNodes - 1 }, (_, j) => j + 1)
-        ],
-        message_stack: []
-    };
+    let nodes = {};
+    for (let i = 0; i < numNodes; i++)
+        nodes[i] = [];
     for (let i = 1; i < numNodes; i++) {
-        machines[i] = {
-            state: {},
-            neighbors: [
-                String(0)
-            ],
-            message_stack: []
-        };
+        nodes[0].push(i);
+        nodes[i].push(0);
     }
-    node_editor.setValue(reverseGraph(machines));
+    node_editor.setValue(graph_to_string(nodes));
 }
 function full(numNodes) {
-    let machines = [];
+    let nodes = {};
     for (let i = 0; i < numNodes; i++) {
-        machines[i] = {
-            state: {},
-            neighbors: [
-                ...Array.from({ length: numNodes }, (_, j) => j).filter(j => j !== i)
-            ],
-            message_stack: []
-        };
+        nodes[i] = [];
+        for (let j = 0; j < numNodes; j++) {
+            if (i !== j) {
+                nodes[i].push(j);
+            }
+        }
     }
-    node_editor.setValue(reverseGraph(machines));
+    node_editor.setValue(graph_to_string(nodes));
+}
+function random(numNodes, completeness = 0.75) {
+    let nodes = {};
+    for (let i = 0; i < numNodes; i++)
+        nodes[i] = [];
+    let edges = 0;
+    let totalPossibleEdges = numNodes * (numNodes - 1);
+    for (let i = 1; i < numNodes; i++) {
+        let neighbor = Math.floor(Math.random() * i);
+        nodes[i].push(neighbor);
+        nodes[neighbor].push(i);
+        edges++;
+    }
+    while (edges / totalPossibleEdges < completeness) {
+        let node1 = Math.floor(Math.random() * numNodes);
+        let node2 = Math.floor(Math.random() * numNodes);
+        if (node1 !== node2 && !nodes[node1].includes(node2)) {
+            nodes[node1].push(node2);
+            edges++;
+        }
+    }
+    node_editor.setValue(graph_to_string(nodes));
 }

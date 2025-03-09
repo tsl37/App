@@ -15,19 +15,7 @@ function updateGraph(system) {
         .data(nodes)
         .select("foreignObject")
         .html((d) => {
-        const cardHTML = `
-                <div class="card bootstrap-card node-card">
-                    <div class="card-body">
-                        <h5 class="card-title">${d.id}</h5>
-                        <div class="card-text">
-                            ${Object.entries(d.state).map(([key, value]) => `
-                                <div><strong>${key}:</strong> ${JSON.stringify(value, null, 2)}</div>
-                            `).join('')}
-                            <p><strong>Messages:</strong> ${JSON.stringify(d.message_stack, null, 2)}</p>
-                        </div>
-                    </div>
-                </div>
-            `;
+        const cardHTML = generateNodeCardHTML(d);
         tempContainer.html(cardHTML);
         const tempNode = tempContainer.node();
         if (tempNode) {
@@ -48,6 +36,9 @@ function updateGraph(system) {
     simulation.force("link").distance(newLinkDistance);
     if (newLinkDistance !== link_distance) {
         link_distance = newLinkDistance;
-        simulation.alpha(1).restart();
+        simulation.tick(500);
     }
+}
+function refresh_graph() {
+    updateGraph(global_context.distributed_system_states[global_context.current_step]);
 }

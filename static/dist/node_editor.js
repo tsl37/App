@@ -38,7 +38,21 @@ function createGraph(inputEdges) {
     });
     return distributed_system;
 }
-//Update the graph after the user has made changes in the editor
+function string_to_adj_list() {
+    var nodes = {};
+    var val = node_editor.getSession().getValue().trim();
+    var edges = val.split('\n').map(x => x.split(' ').map(x => parseInt(x)));
+    edges.sort((a, b) => a.length - b.length);
+    edges.forEach((edge) => {
+        if (edge.length == 1) {
+            nodes[edge[0]] = [];
+        }
+        else if (edge.length == 2) {
+            nodes[edge[0]].push(edge[1]);
+        }
+    });
+    return nodes;
+}
 function update() {
     var val = node_editor.getSession().getValue().trim();
     var edges = val.split('\n').map(x => x.split(' ').map(x => parseInt(x)));
@@ -46,14 +60,4 @@ function update() {
     global_context.distributed_system_states[0] = system;
     clean_graph();
     drawGraph(system);
-}
-function reverseGraph(machines) {
-    var nodes = Object.keys(machines);
-    var edges = [];
-    nodes.forEach(node => {
-        machines[node].neighbors.forEach((neighbor) => {
-            edges.push([neighbor, node]);
-        });
-    });
-    return nodes.join('\n') + "\n" + edges.map(x => x.join(' ')).join('\n');
 }

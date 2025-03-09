@@ -4,6 +4,53 @@ let nodes;
 let machines = {};
 let simulation;
 let link_distance = 50;
+let frozen = false;
+function freeze_animation() {
+    if (simulation) {
+        frozen = true;
+        simulation.stop();
+        nodes.forEach((node) => {
+            node.fx = node.x;
+            node.fy = node.y;
+        });
+    }
+}
+function unfreeze_animation() {
+    frozen = false;
+    nodes.forEach((node) => {
+        node.fx = null;
+        node.fy = null;
+    });
+    simulation.alpha(0.3);
+    simulation.restart();
+}
+function generateNodeCardHTML(d) {
+    const variablesHTML = Object.entries(d.state).filter(([key]) => pinned_variables.includes(key)).map(([key, value]) => `
+        <div><strong>${key}:</strong> ${JSON.stringify(value, null, '\t')}</div>
+    `).join('');
+    const messagesHTML = d.message_stack.length > 0 ? d.message_stack.map((msg, index) => `
+        <div><strong>Message ${index + 1}:</strong> ${JSON.stringify(msg, null, '\t')}</div>
+    `).join('') : "<div>No messages</div>";
+    return `
+        <div class="card bootstrap-card node-card">
+            <div class="card-body">
+                <h5 class="card-title">${d.id}</h5>
+
+                <h6 class="card-header style="cursor:pointer;">
+                    Variables 
+                </h6>
+                <div id="variables-${d.id}"  class="card-text">
+                    ${variablesHTML}
+                </div>
+                
+                <div id="messages-${d.id}" class=" card-text">
+                    ${messagesHTML}
+                </div>
+
+            </div>
+        </div>
+    `;
+}
 function getIntersection(x1, y1, x2, y2, boxWidth, boxHeight) {
     const dx = x2 - x1;
     const dy = y2 - y1;
@@ -49,8 +96,8 @@ function add_node_cards(nodeGroup, nodes) {
         function dragended(event) {
             if (!event.active)
                 simulation.alphaTarget(0);
-            event.subject.fx = null;
-            event.subject.fy = null;
+            event.subject.fx = event.subject.x;
+            event.subject.fy = event.subject.y;
         }
         return d3.drag()
             .on("start", dragstarted)
@@ -67,21 +114,10 @@ function add_node_cards(nodeGroup, nodes) {
         .style("position", "absolute")
         .style("top", "-9999px");
     node.append("foreignObject")
-        .attr("width", 100)
-        .attr("height", 100)
+        .attr("width", 200)
+        .attr("height", 200)
         .html((d) => {
-        const cardHTML = `
-            <div class="card bootstrap-card node-card">
-                <div class="card-body">
-                    <h5 class="card-title">${d.id}</h5>
-                    <div class="card-text">
-                        ${Object.entries(d.state).map(([key, value]) => `
-                            <div><strong>${key}:</strong> ${JSON.stringify(value, null, '\t')}</div>
-                        `).join('')}
-                    </div>
-                </div>
-            </div>
-        `;
+        const cardHTML = generateNodeCardHTML(d);
         tempContainer.html(cardHTML);
         const tempNode = tempContainer.node();
         if (tempNode) {
@@ -95,9 +131,13 @@ function add_node_cards(nodeGroup, nodes) {
     });
     tempContainer.remove();
     node.each(function (d) {
-        d.width = d.width || 150;
-        d.height = d.height || 100;
+        d.width = d.width || 250;
+        d.height = d.height || 200;
     });
+    d3.selectAll(".node")
+        .select("foreignObject")
+        .attr("width", (d) => d.width)
+        .attr("height", (d) => d.height);
     return node;
 }
 function add_links(zoomGroup, links, node, width, height, nodeCount) {
@@ -161,6 +201,7 @@ function drawGraph(system) {
         zoomGroup.attr("transform", event.transform);
     });
     svg.call(zoom);
+    d3.select("svg").on("dblclick.zoom", null);
     const nodeCount = nodes.length;
     simulation = d3.forceSimulation(nodes);
     const nodeGroup = zoomGroup.append("g").attr("class", "nodes");
@@ -178,14 +219,27 @@ function drawGraph(system) {
         .attr("d", "M0,-5L10,0L0,5")
         .attr("fill", "black");
     add_links(zoomGroup, links, node, width, height, nodeCount);
+    simulation.alpha(1).tick(2000);
+    let prevWidth = parseInt(container.style("width"));
+    let prevHeight = parseInt(container.style("height"));
     const resizeObserver = new ResizeObserver(() => {
         const newWidth = parseInt(container.style("width"));
         const newHeight = parseInt(container.style("height"));
+        const dx = (newWidth - prevWidth) / 2; // Horizontal shift
+        const dy = (newHeight - prevHeight) / 2; // Vertical shift
         svg.attr("width", newWidth).attr("height", newHeight);
+        nodes.forEach((node) => {
+            node.x += dx; // Shift position smoothly
+            node.y += dy;
+        });
+        // Update simulation forces without stopping
         simulation.force("center", d3.forceCenter(newWidth / 2, newHeight / 2));
-        simulation.alpha(0.2).restart();
+        // Keep simulation running without freezing
+        simulation.alpha(0.3).restart();
+        // Update previous dimensions
+        prevWidth = newWidth;
+        prevHeight = newHeight;
     });
-    simulation.alpha(1).tick(2000);
     resizeObserver.observe(container.node());
 }
 function clean_graph() {

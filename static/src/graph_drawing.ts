@@ -3,6 +3,62 @@ let nodes: any;
 let machines = {};
 let simulation: any;
 let link_distance = 50;
+let frozen = false;
+
+function freeze_animation() {
+    if (simulation) {
+        frozen = true;
+        simulation.stop();
+        nodes.forEach((node: any) => {
+            node.fx = node.x; 
+            node.fy = node.y;
+        });
+    }
+}
+
+function unfreeze_animation()
+{
+   frozen = false;
+   
+    nodes.forEach((node: any) => {
+        node.fx = null; 
+        node.fy = null;
+    }); 
+    simulation.alpha(0.3);
+    simulation.restart();
+}
+
+
+function generateNodeCardHTML(d: any) {
+    const variablesHTML = Object.entries(d.state).filter(([key]) => pinned_variables.includes(key)).map(([key, value]) => `
+        <div><strong>${key}:</strong> ${JSON.stringify(value, null, '\t')}</div>
+    `).join('');
+
+    const messagesHTML = d.message_stack.length > 0 ? d.message_stack.map((msg: any, index: number) => `
+        <div><strong>Message ${index + 1}:</strong> ${JSON.stringify(msg, null, '\t')}</div>
+    `).join('') : "<div>No messages</div>";
+
+    return `
+        <div class="card bootstrap-card node-card">
+            <div class="card-body">
+                <h5 class="card-title">${d.id}</h5>
+
+                <h6 class="card-header style="cursor:pointer;">
+                    Variables 
+                </h6>
+                <div id="variables-${d.id}"  class="card-text">
+                    ${variablesHTML}
+                </div>
+                
+                <div id="messages-${d.id}" class=" card-text">
+                    ${messagesHTML}
+                </div>
+
+            </div>
+        </div>
+    `;
+}
+
 
 function getIntersection(x1: number, y1: number, x2: number, y2: number, boxWidth: number, boxHeight: number) {
     const dx = x2 - x1;
@@ -38,7 +94,6 @@ function create_nodes(system: Distributed_System, width: number, height: number)
         x: width / 2,
         y: height / 2
     }));
-
 }
 
 function add_node_cards(nodeGroup: any, nodes: any) {
@@ -57,8 +112,9 @@ function add_node_cards(nodeGroup: any, nodes: any) {
 
         function dragended(event: any) {
             if (!event.active) simulation.alphaTarget(0);
-            event.subject.fx = null;
-            event.subject.fy = null;
+           
+            event.subject.fx = event.subject.x;
+            event.subject.fy =  event.subject.y;
         }
 
         return d3.drag()
@@ -80,21 +136,10 @@ function add_node_cards(nodeGroup: any, nodes: any) {
 
 
     node.append("foreignObject")
-        .attr("width", 100)
-        .attr("height", 100)
+        .attr("width", 200)
+        .attr("height", 200)
         .html((d: any) => {
-            const cardHTML = `
-            <div class="card bootstrap-card node-card">
-                <div class="card-body">
-                    <h5 class="card-title">${d.id}</h5>
-                    <div class="card-text">
-                        ${Object.entries(d.state).map(([key, value]) => `
-                            <div><strong>${key}:</strong> ${JSON.stringify(value, null, '\t')}</div>
-                        `).join('')}
-                    </div>
-                </div>
-            </div>
-        `;
+            const cardHTML = generateNodeCardHTML(d);
 
             tempContainer.html(cardHTML);
             const tempNode = tempContainer.node();
@@ -103,7 +148,7 @@ function add_node_cards(nodeGroup: any, nodes: any) {
                 const cardHeight = tempNode.offsetHeight;
                 d.width = cardWidth;
                 d.height = cardHeight;
-            
+
                 return cardHTML;
             }
             return "";
@@ -112,9 +157,14 @@ function add_node_cards(nodeGroup: any, nodes: any) {
     tempContainer.remove();
 
     node.each(function (d: any) {
-        d.width = d.width || 150;
-        d.height = d.height || 100;
+        d.width = d.width || 250;
+        d.height = d.height || 200;
     });
+
+    d3.selectAll(".node")
+    .select("foreignObject")
+    .attr("width", (d:any) => d.width)
+    .attr("height", (d:any)=> d.height);
 
     return node as any;
 }
@@ -212,9 +262,11 @@ function drawGraph(system: Distributed_System) {
         .on("zoom", (event) => {
             zoomGroup.attr("transform", event.transform);
         });
+       
+   
 
     svg.call(zoom);
-
+    d3.select("svg").on("dblclick.zoom", null);
     const nodeCount = nodes.length;
     simulation = d3.forceSimulation(nodes);
 
@@ -237,21 +289,46 @@ function drawGraph(system: Distributed_System) {
         .attr("fill", "black");
 
     add_links(zoomGroup, links, node, width, height, nodeCount);
-
+    simulation.alpha(1).tick(2000);
+    let prevWidth = parseInt(container.style("width"));
+    let prevHeight = parseInt(container.style("height"));
+    
     const resizeObserver = new ResizeObserver(() => {
+       
         const newWidth = parseInt(container.style("width"));
         const newHeight = parseInt(container.style("height"));
-
+    
+        const dx = (newWidth - prevWidth) / 2; // Horizontal shift
+        const dy = (newHeight - prevHeight) / 2; // Vertical shift
+    
         svg.attr("width", newWidth).attr("height", newHeight);
-
+    
+        nodes.forEach((node: any) => {
+            node.x += dx;  // Shift position smoothly
+            node.y += dy;
+        });
+    
+        // Update simulation forces without stopping
         simulation.force("center", d3.forceCenter(newWidth / 2, newHeight / 2));
-        simulation.alpha(0.2).restart();
-      
+    
+        // Keep simulation running without freezing
+        simulation.alpha(0.3).restart();
+    
+        // Update previous dimensions
+        prevWidth = newWidth;
+        prevHeight = newHeight;
+       
     });
-
-    simulation.alpha(1).tick(2000);
-
+    
     resizeObserver.observe(container.node() as Element);
+    
+
+    
+    
+
+   
+
+    
 
 }
 

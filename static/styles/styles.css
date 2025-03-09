@@ -87,13 +87,7 @@ body {
     padding: 10px;
 }
 
-.button {
-    background: #444;
-    color: white;
-    border: none;
-    padding: 10px;
-    cursor: pointer;
-}
+
 
 .sidebar {
     position: relative;
