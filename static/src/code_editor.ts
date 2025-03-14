@@ -1,11 +1,13 @@
+
+
 let pinned_variables: string[] = [];
 
 
-var editor = ace.edit("code-editor");
-    editor.setTheme("ace/theme/monokai");
-    editor.session.setMode("ace/mode/javascript");
-    editor.resize();
-    editor.setValue(`int leader = 0;
+var code_editor = ace.edit("code-editor");
+    code_editor.setTheme("ace/theme/monokai");
+    code_editor.session.setMode("ace/mode/c_cpp");
+    code_editor.resize();
+    code_editor.setValue(`int leader = 0;
 int state = 0;
 int id = UID;
 int msg;
@@ -40,7 +42,21 @@ msg = <-msgs;
 
 async function get_variable_names()
 {
-    return ["id","leader","state","msg","boop"]
+const response = await fetch('/variable_names', {
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ code: code_editor.getValue() })
+});
+
+if (response.ok) {
+    const data = await response.json();
+    return data;
+} else {
+    console.error('Failed to fetch variable names');
+    return [];
+}
 }
 
 const Offcanvas = document.getElementById('VariablePinOffCanvas');
@@ -50,7 +66,7 @@ if (Offcanvas) {
         const container:any = document.getElementById('variable-list');
         container.innerHTML = '';
         
-        variableList.forEach(variable => {
+        variableList.forEach((variable: string ) => {
             const div = document.createElement('div');
             div.classList.add('form-check');
             
@@ -81,3 +97,28 @@ if (Offcanvas) {
         refresh_graph();
     });
 }
+
+
+async function code_validity_check()
+{
+    const response = await fetch('/syntax_check', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ code: code_editor.getValue() })
+    });
+    
+    if (response.ok) {
+        const data = await response.json();
+        if(data['success'] == false)
+        {
+            console.log(data['error']);
+        }
+        return data['success'];
+    } else {
+        console.error('Failed to check syntax');
+        return false;
+    }
+}
+

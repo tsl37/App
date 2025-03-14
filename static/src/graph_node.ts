@@ -47,6 +47,51 @@ class Graph {
         }
        
     }
+
+    is_valid() {
+
+        if(this.nodes.size === 0) {
+            return false;
+        }
+        console.log(this.nodes);
+        const visited = new Set<string>();
+
+        const dfs = (nodeId: string) => {
+            console.log(nodeId);
+            if (visited.has(nodeId)) return;
+            visited.add(nodeId);
+            const node = this.nodes.get(nodeId);
+            if (node) {
+                node.neighbors.forEach(neighbor => {
+                    dfs(neighbor);
+                });
+            }
+        };
+
+       
+        const startNode = this.nodes.keys().next().value;
+        console.log( this.nodes.keys().next().value);
+        if (startNode  !== undefined) {
+            console.log(startNode);
+            dfs(startNode);
+        }
+
+       
+        const isConnected = this.nodes.size === visited.size;
+        console.log(isConnected);
+        
+       
+        let hasDuplicateEdges = false;
+        this.nodes.forEach(node => {
+            const uniqueNeighbors = new Set(node.neighbors);
+            if (uniqueNeighbors.size !== node.neighbors.length) {
+                hasDuplicateEdges = true;
+            }
+        });
+
+        return isConnected ;
+
+    }
     
     removeEdge(node1: { removeEdge: (arg0: any) => void; id: any; }, node2: { id: any; removeEdge: (arg0: any) => void; }) {
         node1.removeEdge(this.nodes.get(node2.id));

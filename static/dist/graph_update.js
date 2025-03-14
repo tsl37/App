@@ -1,6 +1,7 @@
 "use strict";
 function updateGraph(system) {
     const data = distributed_system_to_object(system).machines;
+    console.log("Graph updating");
     nodes.forEach((node) => {
         if (data[node.id]) {
             node.state = data[node.id].state;
@@ -36,9 +37,16 @@ function updateGraph(system) {
     simulation.force("link").distance(newLinkDistance);
     if (newLinkDistance !== link_distance) {
         link_distance = newLinkDistance;
-        simulation.tick(500);
+        simulation.restart().tick(500);
     }
+    simulation.force("link").distance(newLinkDistance);
+    simulation.force("collision").radius((d) => {
+        return Math.max(d.width / 2, d.height / 2) + 10;
+    });
+    simulation.restart();
+    console.log("Graph updated");
 }
 function refresh_graph() {
+    console.log("Refreshing graph");
     updateGraph(global_context.distributed_system_states[global_context.current_step]);
 }

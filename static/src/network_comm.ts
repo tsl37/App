@@ -1,13 +1,19 @@
+const step_event = new Event("step");
+let isStepping = false;
 
-function step_back() {
+function step_backward() {
+    if (isStepping) return;
+    isStepping = true;
     var current_step = global_context.current_step;
     if (current_step > 0) {
         current_step--;
         global_context.current_step = current_step;
         updateGraph(global_context.distributed_system_states[current_step]);
+        document.dispatchEvent(step_event);
     }
+    isStepping = false;
 }
-let isStepping = false;
+
 
 async function step_forward() {
     if (isStepping) return;
@@ -22,33 +28,43 @@ async function step_forward() {
     }
 
     if (current_step === global_context.steps) {
-        const code = editor.getValue();
+        const code = code_editor.getValue();
         distributed_system.code = code;
         const payload = JSON.stringify(distributed_system_to_json(distributed_system));
         try {
             const data: any = await fetch_next_step(payload);
-          
+
             if (!data) {
                 console.error("Failed to fetch the next step.");
                 isStepping = false;
                 return;
             }
-            distributed_system = json_to_distributed_system({ code: code, machines: data });
-           
+
+            if (data.error) {
+                BS_alert(data.error);
+                isStepping = false;
+                return;
+            }
+            distributed_system = json_to_distributed_system({ code: code, machines: data["machines"] });
+
             updateGraph(distributed_system);
             current_step++;
             global_context.current_step = current_step;
             global_context.steps++;
             global_context.distributed_system_states[current_step] = distributed_system;
+            document.dispatchEvent(step_event);
 
         } catch (error) {
-            console.error("Error in step execution:", error);
+            BS_alert("Error fetching next step" + error);
+            isStepping = false;
+            return;
         }
     }
     else {
         current_step++;
         global_context.current_step = current_step;
         updateGraph(global_context.distributed_system_states[current_step]);
+        document.dispatchEvent(step_event);
     }
 
     isStepping = false;
@@ -80,14 +96,14 @@ async function fetch_next_step(payload: string) {
 function json_to_distributed_system(json: { code: any; machines: any; }) {
     const system = new Distributed_System(json.code);
     var machines: any = Object.entries(json.machines);
-    
+
 
     machines.forEach((machine: any) => {
-       
+
         const node = new Machine(machine[0], machine[1].state, machine[1].message_stack);
         system.graph.addNode(node);
     });
-   
+
 
     machines.forEach((machine: any) => {
         machine[1].neighbors.forEach((neighborId: any) => {

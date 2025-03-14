@@ -1,3 +1,4 @@
+
 let container = d3.select("#graph-container");
 let nodes: any;
 let machines = {};
@@ -8,7 +9,6 @@ let frozen = false;
 function freeze_animation() {
     if (simulation) {
         frozen = true;
-        simulation.stop();
         nodes.forEach((node: any) => {
             node.fx = node.x; 
             node.fy = node.y;
@@ -205,8 +205,6 @@ function add_links(zoomGroup: any, links: any, node: any, width: number, height:
             const sourceNode = nodes[d.source.index];
             const targetNode = nodes[d.target.index];
 
-
-
             const sourceOffset = getIntersection(
                 sourceNode.x,
                 sourceNode.y,
@@ -290,54 +288,21 @@ function drawGraph(system: Distributed_System) {
 
     add_links(zoomGroup, links, node, width, height, nodeCount);
     simulation.alpha(1).tick(2000);
-    let prevWidth = parseInt(container.style("width"));
-    let prevHeight = parseInt(container.style("height"));
-    
-    const resizeObserver = new ResizeObserver(() => {
-       
-        const newWidth = parseInt(container.style("width"));
-        const newHeight = parseInt(container.style("height"));
-    
-        const dx = (newWidth - prevWidth) / 2; // Horizontal shift
-        const dy = (newHeight - prevHeight) / 2; // Vertical shift
-    
-        svg.attr("width", newWidth).attr("height", newHeight);
-    
-        nodes.forEach((node: any) => {
-            node.x += dx;  // Shift position smoothly
-            node.y += dy;
-        });
-    
-        // Update simulation forces without stopping
-        simulation.force("center", d3.forceCenter(newWidth / 2, newHeight / 2));
-    
-        // Keep simulation running without freezing
-        simulation.alpha(0.3).restart();
-    
-        // Update previous dimensions
-        prevWidth = newWidth;
-        prevHeight = newHeight;
-       
-    });
-    
-    resizeObserver.observe(container.node() as Element);
-    
-
-    
-    
-
    
-
-    
-
 }
+
+d3.select(window).on("resize", () => {
+    const svg = d3.select("svg");
+   
+});
+
+
+
 
 function clean_graph() {
     const svg = d3.select("svg");
     svg.selectAll("*").remove();
-    if (simulation) {
-        simulation.stop();
-    }
+  
     nodes = [];
     machines = {};
     simulation = null;

@@ -1,5 +1,5 @@
 venv/
-static/node_modules/
+node_modules/
 __pycache__/
 App.code-workspace
 .vscode/

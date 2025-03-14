@@ -5,9 +5,8 @@ from flaskwebgui import FlaskUI
 from flask import Flask, jsonify, render_template, request
 import Node as nd
 from functools import reduce
-
-
-
+from Node import trees,parser
+from lark import tree
 
 def merge_dictionaries(d1, d2):
     merged_dict = d1.copy()
@@ -55,21 +54,65 @@ def update_machine_states(machines):
 
 @app.route("/execute_step", methods=["POST"])
 def execute_step():
-    start_time = time.time()
+    try:
+        data = request.get_json()
+
+        machines = create_machines_from_json(data)
+        
+        tmp = []
+
+        machines = update_machine_states(machines)
+
+        for machine in machines:
+            tmp.append(machine.toDict())
+        
+        response ={ }
+        response["machines"] = reduce(merge_dictionaries, tmp)
+        response["success"] = True
+        return jsonify(response)
+    except Exception as e:
+        return jsonify({"error": str(e), "success": False})
+    
+    
+
+@app.route("/variable_names", methods=["POST"])
+def variable_names():
     data = request.get_json()
+    code = data["code"]
+    
+    if(trees.get(code) is None):
+        trees[code] = parser.parse(code)
+        
+    tree = trees[code]
+    tokens = []
+    for child in tree.children:
+        try:
+            if(child.data == "declaration"):
+                tokens.append(child.children[0])
+        except:
+            pass
+   
+    print(tokens)
+    return jsonify(tokens)
 
-    machines = create_machines_from_json(data)
-    for machine in machines:
-        pprint(machine.toDict())
-    tmp = []
-
-    machines = update_machine_states(machines)
-
-    for machine in machines:
-        tmp.append(machine.toDict())
-    end_time = time.time()
-    print(f"Execution time: {end_time - start_time} seconds")
-    return jsonify(reduce(merge_dictionaries, tmp))
+@app.route("/syntax_check", methods=["POST"])
+def syntax_check():
+    data = request.get_json()
+    code = data["code"]
+    
+    try:
+        trees[code] = parser.parse(code)
+        response = {
+            "success": True
+        }
+    except Exception as e:
+        response = {
+            "success": False,
+            "error": str(e)
+        }
+    
+    
+    return jsonify(response)
 
 
 @app.route("/")
