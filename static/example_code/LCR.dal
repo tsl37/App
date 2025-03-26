@@ -1,0 +1,32 @@
+#Simple leader lection algorithm
+#Applicable a unidirectional circle
+
+let leader = 0;
+let state = 0;
+let id = UID;
+let msg = None;
+if(state == 0)
+{ 
+    state = 1;
+    0->id;
+}
+else
+{   
+
+if(msgs.length >0)
+{
+msg = <-msgs;
+  if(msg == UID)
+  {
+      leader = 1;
+   }    
+   else
+   {  
+       if(msg >id )
+        {          
+            0->msg;  
+            id = msg;
+        }   
+   }
+}
+}

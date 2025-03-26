@@ -112,13 +112,27 @@
 
                 <div class="offcanvas offcanvas-end" tabindex="-1" id="SaveOffCanvas" aria-labelledby="SaveOffCanvasLabel">
                     <div class="offcanvas-header">
-                        <h5 class="offcanvas-title" id="SaveOffCanvasLabel">Offcanvas</h5>
+                        <h5 class="offcanvas-title" id="SaveOffCanvasLabel">saved files</h5>
                         <button class="btn btn-primary" type="button" >
                         <i class="bi bi-floppy"></i>
                     </button>
                         <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
                     </div>
-                    <div class="offcanvas-body" id='code-list'>
+                    <div class="offcanvas-body">
+
+                    {% for file in files %}
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span>{{ file }}</span>
+                        <div>
+                            <button class="btn btn-primary btn-sm" onclick="load_file('{{ file }}')" title="Load File">
+                                <i class="bi bi-folder2-open"></i>
+                            </button>
+                            <button class="btn btn-danger btn-sm" onclick="delete_file('{{ file }}')" title="Delete File">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                    {% endfor %}
                     
 
 

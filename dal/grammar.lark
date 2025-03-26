@@ -1,0 +1,89 @@
+start: (statement ";"?)+
+
+COMMENT: /#[^\n]*/
+
+%ignore COMMENT
+?statement: assignment | if_statement | while_statement | expression | send_message | halt | declaration | for_statement
+
+assignment: target "=" expression 
+
+declaration.30: _LET " " target "=" expression
+
+_LET: "let"
+
+target.10: NAME  | NAME"[" expression "]" ->indexed_target
+
+if_statement: "if" "(" expression ")" "{" block"}" ("else" "{" block"}")?
+
+block: (statement ";"?)+ 
+
+uid.10: "UID"
+
+halt.10: "HALT"
+
+indexed_access.10: expression "[" expression "]" -> indexed_access
+
+access: target
+        |indexed_access
+
+array : "[" (expression ("," expression)*)? "]"
+tuple : "(" (expression ","( expression ("," expression)*)?) ")" -> tuple
+
+length.10: target".length" -> length
+        
+send_message.10: expression "->" expression 
+
+comparison: expression "==" expression -> equals
+         | expression "<" expression -> lesser
+         | expression ">" expression -> greater
+
+while_statement: "while" "(" expression ")" "{" block "}"
+
+function_call.10: target "(" expression ("," expression)* ")"
+
+for_statement: "for" target "in" expression "{" block "}"
+
+?expression:  "-" expression -> negation
+          | comparison
+          | length
+          | "<-msgs" -> receive_message
+          | array
+          | tuple
+          | function_call
+          | sum
+          | "(" expression ")" -> grouped_expr  // Ensure parentheses enforce grouping
+
+primary: literal
+        | access
+literal.20: NUMBER -> number
+| ESCAPED_STRING  -> string
+| bool 
+| "None" -> none
+| uid
+bool: "true" -> true
+    | "false" -> false
+    
+string: ESCAPED_STRING
+
+sum: sum "+" term -> addition
+    | sum "-" term -> subtraction
+    | term -> single_term
+
+term: term "*" factor -> multiplication
+    | term "/" factor -> division
+    | term "//" factor -> integer_division
+    | term "%" factor -> modulo 
+    | factor -> single_factor
+
+factor: "-" factor -> negation
+    | literal
+    | primary
+    | "(" expression ")" -> grouped_expr // This enforces correct parenthesis behavior
+
+%import common.CNAME  -> NAME
+%import common.NUMBER
+%import common.ESCAPED_STRING
+%import common.WS
+%import common.NEWLINE -> NL
+
+%ignore WS
