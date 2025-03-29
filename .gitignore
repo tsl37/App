@@ -1,5 +1,10 @@
-venv/
+venv
 node_modules/
 __pycache__/
 App.code-workspace
 .vscode/
+temp.dat
+venv
+dist
+static/lib
+

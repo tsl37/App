@@ -1,6 +1,8 @@
 import glob
 import os
 from pprint import pprint
+import sys
+import threading
 import time
 from flaskwebgui import FlaskUI
 from flask import Flask, jsonify, render_template, request
@@ -9,6 +11,17 @@ from dist_sys.distributed_system import DistributedSystem
 import dist_sys.machine as nd
 from functools import reduce
 from lark import tree
+import webview
+import signal
+from werkzeug.serving import make_server
+
+def get_resource_path(relative_path):
+    """Get absolute path to resource, works for dev and for PyInstaller"""
+    if getattr(sys, 'frozen', False):
+        base_path = sys._MEIPASS
+    else:
+        base_path = os.path.dirname(os.path.abspath(__file__))
+    return os.path.join(base_path, relative_path)
 
 app = Flask(__name__)
 ui = FlaskUI(app)
@@ -51,7 +64,7 @@ def syntax_check():
 def get_file():
     data = request.get_json()
     filename = data["file"]
-    filename = os.path.join("static", "example_code", filename)
+    filename = get_resource_path(os.path.join("static", "example_code", filename))
     try:
         with open(filename, "r") as file:
             response = {
@@ -68,15 +81,75 @@ def get_file():
 @app.route("/")
 def index():
     files = []
+    example_code_path = get_resource_path(os.path.join("static", "example_code"))
     
-    for file in glob.glob(os.path.join("static", "example_code", "*.dal")):
+    for file in glob.glob(os.path.join(example_code_path, "*.dal")):
         files.append(os.path.split(file)[1])
         
     print(files)
     return render_template("index.html", files=files)
 
+class ServerThread(threading.Thread):
+    def __init__(self, app):
+        threading.Thread.__init__(self)
+        self.server = make_server('localhost', 5000, app)
+        self.ctx = app.app_context()
+        self.ctx.push()
 
-if __name__ == "__main__":
-    app.run(debug=True)
-    #FlaskUI(app=app, server="flask",).run()
+    def run(self):
+        self.server.serve_forever()
+
+    def shutdown(self):
+        self.server.shutdown()
+
+server = None
+window = None
+
+def on_closed():
+    """Handle window close event"""
+    print("Closing application...")
+    if server:
+        server.shutdown()
+    sys.exit(0)
+
+def start_flask(ready_event):
+    try:
+        global server
+        server = ServerThread(app)
+        server.start()
+        ready_event.set()
+    except Exception as e:
+        print(f"Backend startup failed: {str(e)}")
+
+if __name__ == "__main__": 
+    
+    backend_ready = threading.Event()
+
+    # Start Flask in a separate thread
+    flask_thread = threading.Thread(target=start_flask, args=(backend_ready,))
+    flask_thread.daemon = True
+    flask_thread.start()
+
+    # Wait for backend initialization to complete
+    print("Waiting for backend setup to complete...")
+    backend_ready.wait()
+    print("Backend initialized. Starting UI...")
+    
+    base_path = get_resource_path("")  # Use the same path resolution function
+    print(f"Base path: {base_path}")
+
+    # Create a PyWebView window with close handler
+    window = webview.create_window(
+        "Ann Haliszt", 
+        "localhost:5000",
+        fullscreen=False,
+        width=1200,
+        height=800,
+        resizable=True,
+        min_size=(800, 600),
+        maximized=True 
+    )
+    window.events.closed += on_closed
+    webview.start()
+
 

@@ -1,9 +1,23 @@
 import os
+import sys
 from lark import Lark
 from dal.Interpreter import DALInterpreter, ExecutionContext
+
+def get_resource_path(relative_path):
+    """Get absolute path to resource, works for dev and for PyInstaller"""
+    if getattr(sys, 'frozen', False):
+        # Running in a bundle
+        base_path = sys._MEIPASS
+    else:
+        # Running in normal Python environment
+        base_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    return os.path.join(base_path, relative_path)
+
 tree_cache = {}
-parser = None 
-with open(os.path.join("dal", "grammar.lark"), "r") as f:
+parser = None
+
+grammar_path = get_resource_path(os.path.join("static", "grammar", "grammar.lark"))
+with open(grammar_path, "r") as f:
     parser = Lark(f)
 
 def run(code,context = None):
