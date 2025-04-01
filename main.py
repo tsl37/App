@@ -3,16 +3,15 @@ import os
 from pprint import pprint
 import sys
 import threading
-import time
-from flaskwebgui import FlaskUI
+
 from flask import Flask, jsonify, render_template, request
 from dal.DALRunner import check_syntax, top_level_variables
 from dist_sys.distributed_system import DistributedSystem
 import dist_sys.machine as nd
 from functools import reduce
-from lark import tree
+
 import webview
-import signal
+
 from werkzeug.serving import make_server
 
 def get_resource_path(relative_path):
@@ -24,7 +23,6 @@ def get_resource_path(relative_path):
     return os.path.join(base_path, relative_path)
 
 app = Flask(__name__)
-ui = FlaskUI(app)
 
 @app.route("/execute_step", methods=["POST"])
 def execute_step():

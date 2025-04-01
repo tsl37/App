@@ -36,7 +36,7 @@ class DistributedSystem():
         for UID, machine_data in machines_json.items():
             UID = int(UID)
             state = machine_data.get("state", {})
-            machine = Machine(UID, code)
+            machine = Machine(UID)
             machine.memory = state
             machine.incoming_messages = machine_data.get("message_stack", [])
             machines_dict[UID] = machine

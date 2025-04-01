@@ -6,10 +6,9 @@ from dal.Interpreter import ExecutionContext
 
 class Machine:
     
-    def __init__(self, UID, code, neighbors=None):
+    def __init__(self, UID, neighbors=None):
         self.UID = UID
         self.neighbors = neighbors if neighbors is not None else []
-        self.code = code
         self.outgoing_messages = {}
         self.incoming_messages = []
         self.memory = {}
@@ -26,7 +25,8 @@ class Machine:
 
     def sendMessages(self):
         for node, message in self.outgoing_messages.items():
-            self.neighbors[node].receiveMessage(message)
+            
+            list(filter(lambda x :x.UID == node,self.neighbors))[0].receiveMessage(message)
         self.outgoing_messages = {}
 
     def clear(self):
@@ -35,6 +35,7 @@ class Machine:
     def executeCode(self,code):
         context = ExecutionContext(
             UID=self.UID,
+            out_nbrs=list(map(lambda x : x.UID,self.neighbors)),
             variables=dict(self.memory),
             incoming_messages=self.incoming_messages
             )

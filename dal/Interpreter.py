@@ -1,28 +1,35 @@
 from lark import Lark, visitors, v_args, Token, Tree
 from pprint import pprint
-
+import copy
 allowed_functions = {
     "print": print,
     "range": range,
     "max": max,
     "min": min,
     "sorted": sorted,
+    "len" : len
+   
 }
 
 
 class ExecutionContext:
-    def __init__(self, UID=0, variables=None, incoming_messages=None):
+    def __init__(self, UID = None,out_nbrs = None, variables=None, incoming_messages=None):
         self.variables = variables if variables != None else {}
         self.UID = UID
         self.incoming_messages = incoming_messages if incoming_messages != None else []
         self.outgoing_messages = {}
         self.halt = False
+        self.functions = allowed_functions.copy()
+        self.out_nbrs = out_nbrs
+        self.functions.update({ "send_message": self.send_message, "get_messages": self.get_messages,"get_UID":self.get_uid,"get_out_nbrs":self.get_out_nbrs})
 
     def __str__(self):
         return str(self.variables)
 
     def set_var(self, name, value):
         self.variables[name] = value
+        
+    
 
     def get_var(self, name):
         if name in self.variables:
@@ -39,7 +46,19 @@ class ExecutionContext:
     def set_array_value(self, name, index, value):
         self.variables[name][index] = value
 
+    
+    def get_uid(self):
+        return self.UID
 
+    def send_message(self,dest,msg):
+        self.outgoing_messages.update({dest: msg})
+
+    def get_messages(self):
+        return self.incoming_messages
+    
+    def get_out_nbrs(self):
+        return self.out_nbrs
+    
 class DALInterpreter(visitors.Interpreter):
     def __init__(self, context):
         super().__init__()
@@ -77,31 +96,10 @@ class DALInterpreter(visitors.Interpreter):
     def pop_context(self):
         self.call_stack.pop()
 
-    def length(self, tree):
-        name = self.visit(tree.children[0])
-        if name == "msgs":
-            return len(self.global_context.incoming_messages)
-        value = self.get_var(name)
-        return len(value)
-
-    def length_messages(self, tree):
-        return len(self.global_context.incoming_messages)
-
     def access(self, tree):
         name = self.visit(tree.children[0])
         value = self.get_var(name)
         return value
-
-    def uid(self, tree):
-        return self.global_context.UID
-
-    def send_message(self, tree):
-        recipient = self.visit(tree.children[0])
-        msg = self.visit(tree.children[1])
-        self.global_context.outgoing_messages.update({recipient: msg})
-
-    def receive_message(self, tree):
-        return self.global_context.incoming_messages.pop()
 
     def assignment(self, tree):
 
@@ -126,6 +124,7 @@ class DALInterpreter(visitors.Interpreter):
         var = self.visit(tree.children[0])
 
         index = self.visit(tree.children[1])
+
 
         value = var[index]
 
@@ -195,8 +194,8 @@ class DALInterpreter(visitors.Interpreter):
     def function_call(self, tree):
         name = self.visit(tree.children[0])
         args = [self.visit(child) for child in tree.children[1:]]
-        if name in allowed_functions:
-            return allowed_functions[name](*args)
+        if name in self.global_context.functions:
+            return self.global_context.functions[name](*args)
         else:
             raise ValueError(f"Undefined function: {name}")
 

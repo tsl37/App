@@ -24,7 +24,7 @@ class TestControlFlow(unittest.TestCase):
     def test_for_loop(self):
         code = """
         let sum = 0;
-        for i in range(3) { sum = sum + i; }
+        for i in range(0, 3) { sum = sum + i; }
         """
         memory = self.execute(code)
         self.assertEqual(memory["sum"], 3)  # 0 + 1 + 2 = 3
