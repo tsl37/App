@@ -260,3 +260,12 @@ class DALInterpreter(visitors.Interpreter):
 
     def none(self, tree):
         return None
+    
+    def dictionary(self, tree):
+        items = self.visit_children(tree)
+        return {key: value for key, value in items}
+
+    def dict_item(self, tree):
+        key = self.visit(tree.children[0])
+        value = self.visit(tree.children[1])
+        return key, value

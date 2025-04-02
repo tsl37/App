@@ -24,6 +24,8 @@ access: target
 
 array : "[" (expression ("," expression)*)? "]"
 tuple : "(" (expression ","( expression ("," expression)*)?) ")" -> tuple
+dictionary: "{" (dict_item ("," dict_item)*)? "}" -> dictionary
+dict_item: expression ":" expression -> dict_item
 
 length.10: target".length" -> length
         
@@ -43,6 +45,7 @@ for_statement: "for" target "in" expression "{" block "}"
           | length
           | array
           | tuple
+          | dictionary
           | function_call
           | sum
           | "(" expression ")" -> grouped_expr  // Ensure parentheses enforce grouping
@@ -82,4 +85,4 @@ factor: "-" factor -> negation
 %import common.WS
 %import common.NEWLINE -> NL
 
-%ignore WS 
+%ignore WS

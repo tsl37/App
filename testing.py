@@ -6,10 +6,8 @@ from dist_sys.machine import Machine
 
 
 code = r"""
-   let received_message = 0;
-        if (len(get_messages()) > 0) {
-            received_message = get_messages()[0];
-        }
+ let x = {"hello" : "world"}
+ let y = x["hello"]
 
 """
 
