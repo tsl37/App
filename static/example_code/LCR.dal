@@ -1,22 +1,27 @@
-#Simple leader lection algorithm
+#Simple leader election algorithm
 #Applicable a unidirectional circle
 
 let leader = 0;
 let state = 0;
-let id = UID;
+let id = get_uid();
 let msg = None;
+
+
 if(state == 0)
 { 
     state = 1;
-    0->id;
+    for nbr in get_out_nbrs()
+    {
+        send_message(nbr,get_uid())
+    }
 }
 else
 {   
-
-if(msgs.length >0)
+for msg in get_messages()
 {
-msg = <-msgs;
-  if(msg == UID)
+    msg = get_messages()[msg]
+
+  if(msg == get_uid())
   {
       leader = 1;
    }    
@@ -24,7 +29,10 @@ msg = <-msgs;
    {  
        if(msg >id )
         {          
-            0->msg;  
+             for nbr in get_out_nbrs()
+            {
+                send_message(nbr,msg)
+            }
             id = msg;
         }   
    }

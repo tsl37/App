@@ -3,6 +3,7 @@
 
 
 from functools import reduce
+from pprint import pprint
 
 from dist_sys.machine import Machine
 
@@ -18,12 +19,17 @@ class DistributedSystem():
         machines = self.machines
         code = self.code
         
+      
+        
         for machine in machines:
             machine.executeCode(code)
             machine.clear()
 
         for machine in machines:
             machine.sendMessages()
+            
+        pprint("Machines after:")
+        pprint(list(map(lambda x: x.dict,machines)))
             
         return DistributedSystem(machines,code)
             
@@ -35,19 +41,27 @@ class DistributedSystem():
 
         for UID, machine_data in machines_json.items():
             UID = int(UID)
-            state = machine_data.get("state", {})
+            
+           
             machine = Machine(UID)
+            state = machine_data.get("state", {})
             machine.memory = state
-            machine.incoming_messages = machine_data.get("message_stack", [])
+            machine.incoming_messages = machine_data.get("message_stack", {})
             machines_dict[UID] = machine
-
+            print(f"Machine {UID} state:")
+            pprint(state)
+            
+            
+      
+        
         for UID, machine_data in machines_json.items():
-            neighbor_ids = machine_data.get("neighbors", [])
+            neighbor_ids = list(set(machine_data.get("neighbors", [])))
             machines_dict[int(UID)].neighbors = [
                 machines_dict[int(n_id)] for n_id in neighbor_ids
             ]
 
         machines = list(machines_dict.values())
+      
         return DistributedSystem(machines,code)
     
     @property
@@ -60,7 +74,7 @@ class DistributedSystem():
         
         tmp = []
         for machine in self.machines:
-            tmp.append(machine.toDict())
+            tmp.append(machine.dict)
         dict ={ }
         dict["machines"] = reduce(merge_dictionaries, tmp)
         dict["success"] = True

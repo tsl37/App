@@ -1,0 +1,78 @@
+#Simple leader election algorithm
+#Applicable a bidirectional circle
+#tokens structure (sender,distance,traveled)
+
+let phase = 0;
+let tokens = 2;
+let leader = 0;
+let nbrs = get_out_nbrs()
+let msgs = None
+msgs = get_messages()
+
+def token_mine(token)
+{
+    if ( token[0] == get_uid() )
+    {
+        return True;
+    }
+    return False;
+}
+
+def receive_tokens()
+{
+    for msg in get_messages()
+    {
+        token = get_messages()[msg];
+        if(!token_mine(token))
+        {
+            if(token[0] < get_uid())
+            {
+                continue;
+            }
+             if(token[2] == token[1])
+                {
+                    token = [token[0],token[1],token[2]+1]
+                    send_message(msg,token)
+                }
+            else
+            {
+            
+
+            for out_nbr in get_out_nbrs()
+            {
+                if(out_nbr != msg)
+                {
+                    token = [token[0],token[1],token[2]+1]
+                    send_message(out_nbr,token)
+                }
+            }
+            }
+        }
+        else
+        {
+            if(token[2]-token[1]>1)
+            {
+                leader = 1;
+                
+            }
+            tokens = tokens +1;
+        }
+    }
+}
+
+
+
+
+if(tokens == 2)
+{
+   token = [get_uid(),pow(2,phase),1]
+
+   for out_nbr in get_out_nbrs()
+   {
+        tokens = tokens -1;
+        send_message(out_nbr,token)
+   }
+   phase = phase + 1;
+}
+
+receive_tokens();

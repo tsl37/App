@@ -16,7 +16,7 @@ parser = None
 
 grammar_path = get_resource_path(os.path.join("static", "grammar", "grammar.lark"))
 with open(grammar_path, "r") as f:
-    parser = Lark(f,parser = 'earley')
+    parser = Lark(f,parser = 'earley',propagate_positions = True,debug = True)
 
 def run(code,context = None):
     
@@ -24,8 +24,6 @@ def run(code,context = None):
     if(tree_cache.get(code) is None):
         tree_cache[code] = parser.parse(code)
     tree = tree_cache[code]
-    
-    print(tree.pretty())
         
     interpreter = DALInterpreter(context=context)
     
@@ -37,6 +35,7 @@ def top_level_variables(code):
         tree_cache[code] = parser.parse(code)
         
     tree = tree_cache[code]
+    
     variables = []
     for child in tree.children:
         try:

@@ -3,7 +3,7 @@ class Graph_Node {
     id;
     neighbors;
     state = {};
-    message_stack = [];
+    message_stack = {};
     constructor(id) {
         this.id = id;
         this.neighbors = [];

@@ -6,9 +6,17 @@ from dist_sys.machine import Machine
 
 
 code = r"""
- let x = {"hello" : "world"}
- let y = x["hello"]
-
+let x = 1;
+def main(hello,x)
+{
+    x = 0;
+    if(True)
+    {
+         return True;
+    }
+   
+}
+let y = main(0,0);
 """
 
 machines = [Machine(0), Machine(1), Machine(2)]
@@ -21,3 +29,4 @@ for i in range (3):
 
 for machine in system.machines:
     pprint(machine.memory)
+    

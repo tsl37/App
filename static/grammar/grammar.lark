@@ -3,7 +3,7 @@ start: (statement ";"?)+
 COMMENT: /#[^\n]*/
 
 %ignore COMMENT
-?statement: assignment | if_statement | while_statement | expression | declaration | for_statement
+?statement: assignment | if_statement | while_statement | expression | declaration | for_statement | function | return | continue | break 
 
 assignment: target "=" expression 
 
@@ -11,11 +11,15 @@ declaration.30: _LET " " target "=" expression
 
 _LET: "let"
 
+return.30: "return" expression -> return_statement
+continue.30: "continue" -> continue_statement
+break.30: "break" -> break_statement
+
 target.10: NAME  | NAME"[" expression "]" ->indexed_target
 
 if_statement: "if" "(" expression ")" "{" block"}" ("else" "{" block"}")?
 
-block: (statement ";"?)+ 
+block: (statement ";"?)* 
 
 _indexed_access.10: expression "[" expression "]" 
 
@@ -31,16 +35,24 @@ length.10: target".length" -> length
         
 
 comparison: expression "==" expression -> equals
+         | expression "!=" expression -> not_equals
          | expression "<" expression -> lesser
          | expression ">" expression -> greater
 
 while_statement: "while" "(" expression ")" "{" block "}"
+
+function.30 : _DEF target "(" targets? ")" "{" block "}" ->function_definition
+
+_DEF: "def"
+
+targets.10: target ("," target)*
 
 function_call.10: target "("( expression ("," expression)*)? ")"
 
 for_statement: "for" target "in" expression "{" block "}"
 
 ?expression:  "-" expression -> negation
+          | "!" expression -> inverse
           | comparison
           | length
           | array
@@ -68,6 +80,7 @@ sum: sum "+" term -> addition
     | sum "-" term -> subtraction
     | term -> single_term
 
+
 term: term "*" factor -> multiplication
     | term "/" factor -> division
     | term "//" factor -> integer_division
@@ -75,7 +88,6 @@ term: term "*" factor -> multiplication
     | factor -> single_factor
 
 factor: "-" factor -> negation
-    | literal
     | primary
     | "(" expression ")" -> grouped_expr // This enforces correct parenthesis behavior
 

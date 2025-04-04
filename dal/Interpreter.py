@@ -1,13 +1,38 @@
 from lark import Lark, visitors, v_args, Token, Tree
+from lark.exceptions import VisitError
 from pprint import pprint
-import copy
+
+class BreakException(Exception):
+    pass
+
+class ContinueException(Exception):
+    pass
+
+class ReturnException(Exception):
+    def __init__(self, value=None):
+        self.value = value
+        
+class InterpretError(Exception):
+    def __init__(self, message):
+        super().__init__(message)
+
 allowed_functions = {
     "print": print,
     "range": range,
     "max": max,
     "min": min,
     "sorted": sorted,
-    "len" : len
+    "len" : len,
+    "pow" : pow,
+    "int" : int,
+    "float" : float,
+    "str" : str,
+    "abs" : abs,
+    "sum" : sum,
+    "list" : list,
+    "tuple" : tuple,
+    "set" : set,
+    "dict" : dict,
    
 }
 
@@ -16,20 +41,18 @@ class ExecutionContext:
     def __init__(self, UID = None,out_nbrs = None, variables=None, incoming_messages=None):
         self.variables = variables if variables != None else {}
         self.UID = UID
-        self.incoming_messages = incoming_messages if incoming_messages != None else []
+        self.incoming_messages = incoming_messages if incoming_messages != None else {}
         self.outgoing_messages = {}
         self.halt = False
         self.functions = allowed_functions.copy()
         self.out_nbrs = out_nbrs
-        self.functions.update({ "send_message": self.send_message, "get_messages": self.get_messages,"get_UID":self.get_uid,"get_out_nbrs":self.get_out_nbrs})
+        self.functions.update({ "send_message": self.send_message, "get_messages": self.get_messages,"get_uid":self.get_uid,"get_out_nbrs":self.get_out_nbrs})
 
     def __str__(self):
         return str(self.variables)
 
     def set_var(self, name, value):
         self.variables[name] = value
-        
-    
 
     def get_var(self, name):
         if name in self.variables:
@@ -46,11 +69,13 @@ class ExecutionContext:
     def set_array_value(self, name, index, value):
         self.variables[name][index] = value
 
-    
     def get_uid(self):
         return self.UID
 
     def send_message(self,dest,msg):
+        dest = int(dest)
+        if dest not in self.out_nbrs:
+            raise ValueError(f"Cannot send message to {dest}. Not a neighbor.")
         self.outgoing_messages.update({dest: msg})
 
     def get_messages(self):
@@ -80,16 +105,30 @@ class DALInterpreter(visitors.Interpreter):
             if name in context.variables:
                 context.set_var(name, value)
                 return
-
         self.current_context().set_var(name, value)
 
     def start(self, tree):
         self.visit_children(tree)
-        return self.current_context()
+        return self.global_context
 
     def current_context(self):
         return self.call_stack[-1]
 
+
+    def break_statement(self, tree):
+        raise BreakException()
+
+    def continue_statement(self, tree):
+        raise ContinueException()
+    
+    def return_statement(self, tree):
+        
+        if len(tree.children ) == 1:
+            value = self.visit(tree.children[0])
+            raise ReturnException(value)
+        else:
+            raise ReturnException()  
+       
     def push_context(self):
         self.call_stack.append(ExecutionContext())
 
@@ -122,10 +161,7 @@ class DALInterpreter(visitors.Interpreter):
 
     def indexed_access(self, tree):
         var = self.visit(tree.children[0])
-
         index = self.visit(tree.children[1])
-
-
         value = var[index]
 
         return value
@@ -161,16 +197,35 @@ class DALInterpreter(visitors.Interpreter):
     def for_statement(self, tree):
         target = self.visit(tree.children[0])
         iterable = self.visit(tree.children[1])
-        self.push_context()
+        block = tree.children[2]
+        
         for value in iterable:
             self.set_var(target, value)
-            self.visit(tree.children[2])
-        self.pop_context()
+            try:
+                self.visit(block)
+            except BreakException:
+                self.pop_context()
+                break
+            except ContinueException:
+                self.pop_context()
+                continue
+
 
     def while_statement(self, tree):
-        while self.visit(tree.children[0]):
-            self.visit(tree.children[1])
+        condition = tree.children[0]
+        block = tree.children[1]
 
+        while self.visit(condition):
+            try:
+                self.visit(block)
+            except BreakException:
+                self.pop_context()
+                break
+            except ContinueException:
+                self.pop_context()
+                self.push_context()
+                continue
+    
     def halt(self, tree):
         self.current_context().halt = True
 
@@ -258,8 +313,43 @@ class DALInterpreter(visitors.Interpreter):
     def negation(self, tree):
         return -self.visit(tree.children[0])
 
+    def function_definition(self, tree):
+        name = self.visit(tree.children[0])
+        params = []
+        body = None
+        if( len(tree.children) == 3):
+            params = self.visit_children(tree.children[1])
+            body = tree.children[2]
+        else:
+            body = tree.children[1]
+            
+        self.global_context.functions.update ({name : lambda *args: self.call_function(name, params, args, body)})
+        
+    def call_function(self, name, params, args, body):
+        if len(params) != len(args):
+            raise ValueError(f"Function {name} takes {len(params)} arguments, but {len(args)} were given.")
+        try:
+            for param, arg in zip(params, args):
+                self.set_var(param, arg)
+            self.visit(body)
+        except ReturnException as e:
+            self.pop_context()
+            return e.value
+        except Exception as e:
+            raise RuntimeError(f"Error in function '{name}': {str(e)}") from e
+
+        return None 
+    
     def none(self, tree):
         return None
+    
+    def not_equals(self, tree):
+        left = self.visit(tree.children[0])
+        right = self.visit(tree.children[1])
+        return left != right
+    
+    def inverse(self, tree):
+        return not self.visit(tree.children[0])
     
     def dictionary(self, tree):
         items = self.visit_children(tree)
@@ -269,3 +359,24 @@ class DALInterpreter(visitors.Interpreter):
         key = self.visit(tree.children[0])
         value = self.visit(tree.children[1])
         return key, value
+
+    def visit(self, tree):
+        try:
+            return super().visit(tree)
+        except (ReturnException, BreakException, ContinueException):
+            raise
+        except InterpretError:
+            raise 
+        except Exception as e:
+            if isinstance(tree, Tree) and hasattr(tree, 'meta') and tree.meta:
+                position = f"Process with UID {self.global_context.get_uid()} at line {tree.meta.line}, column {tree.meta.column}"
+                raise InterpretError(f"{str(e)} {position}") 
+            raise InterpretError(str(e))
+
+
+
+
+
+
+
+

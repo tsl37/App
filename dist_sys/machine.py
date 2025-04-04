@@ -10,11 +10,11 @@ class Machine:
         self.UID = UID
         self.neighbors = neighbors if neighbors is not None else []
         self.outgoing_messages = {}
-        self.incoming_messages = []
+        self.incoming_messages = {}
         self.memory = {}
         
-        
-    def toDict(self):
+    @property 
+    def dict(self):
         return {
             str(self.UID): {
                 "state": self.memory,
@@ -25,12 +25,11 @@ class Machine:
 
     def sendMessages(self):
         for node, message in self.outgoing_messages.items():
-            
-            list(filter(lambda x :x.UID == node,self.neighbors))[0].receiveMessage(message)
+            list(filter(lambda x :x.UID == node,self.neighbors))[0].receiveMessage({self.UID : message})
         self.outgoing_messages = {}
 
     def clear(self):
-        self.incoming_messages = []
+        self.incoming_messages = {}
 
     def executeCode(self,code):
         context = ExecutionContext(
@@ -39,11 +38,14 @@ class Machine:
             variables=dict(self.memory),
             incoming_messages=self.incoming_messages
             )
+
         context = run(code,context)
+        
+
         self.memory = context.variables
         self.outgoing_messages = context.outgoing_messages
 
         
 
     def receiveMessage(self, message):
-        self.incoming_messages.append(message)
+        self.incoming_messages.update(message)

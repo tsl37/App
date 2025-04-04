@@ -169,7 +169,16 @@ function add_node_cards(nodeGroup: any, nodes: any) {
     return node as any;
 }
 
-function add_links(zoomGroup: any, links: any, node: any, width: number, height: number, nodeCount: number) {
+function add_links(zoomGroup: any,data: any, node: any, width: number, height: number, nodeCount: number) {
+
+    const links: any = [];
+    Object.keys(data).forEach(machine => {
+        data[machine].neighbors.forEach((neighbor: any) => {
+            links.push({ source: machine, target: neighbor.toString() });
+        });
+    });
+
+
     const link = zoomGroup.append("g")
         .attr("class", "links")
         .selectAll("line")
@@ -233,71 +242,56 @@ function add_links(zoomGroup: any, links: any, node: any, width: number, height:
 }
 
 
-function drawGraph(system: Distributed_System) {
-    const svg = d3.select("svg");
-    const width = parseInt(svg.style("width"));
-    const height = parseInt(svg.style("height"));
-
-    const data = distributed_system_to_object(system).machines;
-
-    nodes = create_nodes(system, width, height);
-
-    const links: any = [];
-    Object.keys(data).forEach(machine => {
-        data[machine].neighbors.forEach((neighbor: any) => {
-            links.push({ source: machine, target: neighbor.toString() });
-        });
-    });
-
-
-
-    svg.selectAll("*").remove();
-
+function create_zoom_group(svg:any)
+{
     const zoomGroup = svg.append("g").attr("id", "zoomGroup");
-
     const zoom: any = d3.zoom()
         .scaleExtent([0.5, 5])
         .on("zoom", (event) => {
             zoomGroup.attr("transform", event.transform);
         });
-       
-   
 
     svg.call(zoom);
     d3.select("svg").on("dblclick.zoom", null);
-    const nodeCount = nodes.length;
+    zoomGroup.append("defs")
+    .append("marker")
+    .attr("id", "arrowhead")
+    .attr("viewBox", "0 -5 10 10")
+    .attr("refX", 10)
+    .attr("refY", 0)
+    .attr("markerWidth", 6)
+    .attr("markerHeight", 6)
+    .attr("orient", "auto")
+    .append("path")
+    .attr("d", "M0,-5L10,0L0,5")
+    .attr("fill", "black");
+
+    return zoomGroup;
+}
+
+function drawGraph(system: Distributed_System) {
+    const svg = d3.select("svg");
+    svg.selectAll("*").remove();
+    const width = parseInt(svg.style("width"));
+    const height = parseInt(svg.style("height"));
+    
+    var zoomGroup = create_zoom_group(svg);
+
+    const data = distributed_system_to_object(system).machines;
+    nodes = create_nodes(system, width, height);
     simulation = d3.forceSimulation(nodes);
 
     const nodeGroup = zoomGroup.append("g").attr("class", "nodes");
-
     const node = add_node_cards(nodeGroup, nodes);
+    add_links(zoomGroup,data, node, width, height,  nodes.length);
 
-
-    zoomGroup.append("defs")
-        .append("marker")
-        .attr("id", "arrowhead")
-        .attr("viewBox", "0 -5 10 10")
-        .attr("refX", 10)
-        .attr("refY", 0)
-        .attr("markerWidth", 6)
-        .attr("markerHeight", 6)
-        .attr("orient", "auto")
-        .append("path")
-        .attr("d", "M0,-5L10,0L0,5")
-        .attr("fill", "black");
-
-    add_links(zoomGroup, links, node, width, height, nodeCount);
     simulation.alpha(1).tick(2000);
-   
 }
 
 d3.select(window).on("resize", () => {
     const svg = d3.select("svg");
    
 });
-
-
-
 
 function clean_graph() {
     const svg = d3.select("svg");
