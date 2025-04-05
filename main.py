@@ -154,6 +154,7 @@ if __name__ == "__main__":
         maximized=True 
     )
     window.events.closed += on_closed
-    webview.start()
+    #webview.start()
+    app.run(debug=True, use_reloader=False)  # Start Flask app without reloader
 
 

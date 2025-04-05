@@ -143,7 +143,7 @@ function add_links(zoomGroup, data, node, width, height, nodeCount) {
     const links = [];
     Object.keys(data).forEach(machine => {
         data[machine].neighbors.forEach((neighbor) => {
-            links.push({ source: machine, target: neighbor.toString() });
+            links.push({ source: machine, target: neighbor.toString(), x: 0, y: 0 });
         });
     });
     const link = zoomGroup.append("g")
@@ -152,8 +152,8 @@ function add_links(zoomGroup, data, node, width, height, nodeCount) {
         .data(links)
         .enter().append("line")
         .attr("class", "link")
+        .attr("stroke-width", 2)
         .attr("stroke", "black")
-        .attr("stroke-width", 4)
         .attr("marker-end", "url(#arrowhead)");
     const avgNodeSize = d3.mean(nodes, (d) => Math.max(d.width, d.height)) || 100;
     link_distance = avgNodeSize;
@@ -176,15 +176,49 @@ function add_links(zoomGroup, data, node, width, height, nodeCount) {
         link.each(function (d) {
             const sourceNode = nodes[d.source.index];
             const targetNode = nodes[d.target.index];
-            const sourceOffset = getIntersection(sourceNode.x, sourceNode.y, targetNode.x, targetNode.y, sourceNode.width, sourceNode.height);
-            const targetOffset = getIntersection(targetNode.x, targetNode.y, sourceNode.x, sourceNode.y, targetNode.width, targetNode.height);
+            const shifted = shift_line(sourceNode.x, sourceNode.y, targetNode.x, targetNode.y, 10);
+            const sourceOffset = getIntersection(shifted.x1, shifted.y1, shifted.x2, shifted.y2, sourceNode.width, sourceNode.height);
+            const targetOffset = getIntersection(shifted.x2, shifted.y2, shifted.x1, shifted.y1, targetNode.width, targetNode.height);
+            d.x1 = (shifted.x1 + sourceOffset.offsetX);
+            d.y1 = (shifted.y1 + sourceOffset.offsetY);
+            d.x2 = (shifted.x2 + targetOffset.offsetX);
+            d.y2 = (shifted.y2 + targetOffset.offsetY);
             d3.select(this)
-                .attr("x1", sourceNode.x + sourceOffset.offsetX)
-                .attr("y1", sourceNode.y + sourceOffset.offsetY)
-                .attr("x2", targetNode.x + targetOffset.offsetX)
-                .attr("y2", targetNode.y + targetOffset.offsetY);
+                .attr("x1", d.x1)
+                .attr("y1", d.y1)
+                .attr("x2", d.x2)
+                .attr("y2", d.y2);
+        });
+        d3.selectAll(".hover-marker")
+            .attr("cx", (d) => {
+            const dx = d.x2 - d.x1;
+            const dy = d.y2 - d.y1;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            const offsetX = (dx / distance) * 20;
+            return d.x2 - offsetX;
+        })
+            .attr("cy", (d) => {
+            const dx = d.x2 - d.x1;
+            const dy = d.y2 - d.y1;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            const offsetY = (dy / distance) * 20;
+            return d.y2 - offsetY;
         });
     });
+}
+function shift_line(x1, y1, x2, y2, d) {
+    let dir_x = x2 - x1;
+    let dir_y = y2 - y1;
+    let normal_x = -dir_y;
+    let normal_y = dir_x;
+    let magnitude = Math.sqrt(normal_x * normal_x + normal_y * normal_y);
+    normal_x /= magnitude;
+    normal_y /= magnitude;
+    let x1_new = x1 + d * normal_x;
+    let y1_new = y1 + d * normal_y;
+    let x2_new = x2 + d * normal_x;
+    let y2_new = y2 + d * normal_y;
+    return { x1: x1_new, y1: y1_new, x2: x2_new, y2: y2_new };
 }
 function create_zoom_group(svg) {
     const zoomGroup = svg.append("g").attr("id", "zoomGroup");
@@ -207,6 +241,18 @@ function create_zoom_group(svg) {
         .append("path")
         .attr("d", "M0,-5L10,0L0,5")
         .attr("fill", "black");
+    zoomGroup.select("defs")
+        .append("marker")
+        .attr("id", "message-indicator")
+        .attr("viewBox", "0 -5 10 10")
+        .attr("refX", 10)
+        .attr("refY", 0)
+        .attr("markerWidth", 6)
+        .attr("markerHeight", 6)
+        .attr("orient", "auto")
+        .append("path")
+        .attr("d", "M0,-5L10,0L0,5")
+        .attr("fill", "green");
     return zoomGroup;
 }
 function drawGraph(system) {
