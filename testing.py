@@ -16,15 +16,13 @@ def main(hello,x)
     }
    
 }
+halt();
 let y = main(0,0);
 """
 
 machines = [Machine(0), Machine(1), Machine(2)]
 system = DistributedSystem(machines,code)
 
-
-for i in range (3):
-    system = system.next_step
 
 
 for machine in system.machines:

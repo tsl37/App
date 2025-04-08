@@ -7,6 +7,7 @@ import traceback
 
 from flask import Flask, jsonify, render_template, request
 from dal.DALRunner import check_syntax, top_level_variables
+from dal.Interpreter import HaltException
 from dist_sys.distributed_system import DistributedSystem
 import dist_sys.machine as nd
 from functools import reduce
@@ -14,6 +15,8 @@ from functools import reduce
 import webview
 
 from werkzeug.serving import make_server
+
+distributed_systems = {}
 
 def get_resource_path(relative_path):
     """Get absolute path to resource, works for dev and for PyInstaller"""
@@ -27,17 +30,28 @@ app = Flask(__name__)
 
 @app.route("/execute_step", methods=["POST"])
 def execute_step():
+    output = {}
     try:
         data = request.get_json()
-        print("incoming data:")
-        pprint(data)
-        DS = DistributedSystem.from_json(data).next_step
-        print("outgoing data:")
-        pprint(DS.dict)
+        ds = None
+        step = data["step"]
+        if step == 0:
+            ds = DistributedSystem.from_json(data)
+        else:
+            ds = distributed_systems[step-1]
+        
+        DS = ds.next_step
+        distributed_systems[step] = (DS)
+        
         return jsonify(DS.dict)
+
+    except HaltException as e:
+        return jsonify({"error":"Halt() function called.", "success":True})
     except Exception as e:
         print(traceback.format_exc())
         return jsonify({"error": str(e), "success": False})
+    
+    
     
 
 @app.route("/variable_names", methods=["POST"])

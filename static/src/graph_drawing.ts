@@ -33,10 +33,6 @@ function generateNodeCardHTML(d: any) {
         <div><strong>${key}:</strong> ${JSON.stringify(value, null, '\t')}</div>
     `).join('');
 
-    const messagesHTML = d.message_stack.length > 0 ? d.message_stack.map((msg: any, index: number) => `
-        <div><strong>Message ${index + 1}:</strong> ${JSON.stringify(msg, null, '\t')}</div>
-    `).join('') : "<div>No messages</div>";
-
     return `
         <div class="card bootstrap-card node-card">
             <div class="card-body">
@@ -49,10 +45,6 @@ function generateNodeCardHTML(d: any) {
                     ${variablesHTML}
                 </div>
                 
-                <div id="messages-${d.id}" class=" card-text">
-                    ${messagesHTML}
-                </div>
-
             </div>
         </div>
     `;
@@ -89,7 +81,7 @@ function create_nodes(system: Distributed_System, width: number, height: number)
     return Object.keys(data).map(machine => ({
         id: machine,
         state: data[machine].state,
-        message_stack: data[machine].message_stack,
+        messages: data[machine].messages,
         x: width / 2,
         y: height / 2
     }));
@@ -188,11 +180,11 @@ function add_links(zoomGroup: any, data: any, node: any, width: number, height: 
         .attr("marker-end", "url(#arrowhead)");
 
     const avgNodeSize = d3.mean(nodes, (d: any) => Math.max(d.width, d.height)) || 100;
-    link_distance = avgNodeSize;
+    link_distance = avgNodeSize/2;
     const baseLinkDistance = link_distance;
-    const baseRepulsion = -5000;
+    const baseRepulsion = -1000;
     const distanceScalingFactor = Math.log(nodeCount + 1);
-    const repulsionScalingFactor = 1 / Math.sqrt(nodeCount);
+    const repulsionScalingFactor = 1;
 
     simulation.force("link", d3.forceLink(links)
         .id((d: any) => d.id)

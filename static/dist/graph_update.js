@@ -16,7 +16,7 @@ function updateGraph(system) {
     nodes.forEach((node) => {
         if (data[node.id]) {
             node.state = data[node.id].state;
-            node.message_stack = data[node.id].message_stack;
+            node.messages = data[node.id].messages;
         }
     });
     const tempContainer = d3.select("body").append("div")
@@ -55,13 +55,13 @@ function updateGraph(system) {
         return Math.max(d.width / 2, d.height / 2) + 10;
     });
     d3.select(".links").selectAll(".link")
-        .attr("stroke", (d) => d.target?.message_stack && d.target.message_stack.hasOwnProperty(d.source.id)
+        .attr("stroke", (d) => d.target?.messages && d.target.messages.hasOwnProperty(d.source.id)
         ? "green"
         : "black")
-        .attr("stroke-width", (d) => d.target?.message_stack && d.target.message_stack.hasOwnProperty(d.source.id)
+        .attr("stroke-width", (d) => d.target?.messages && d.target.messages.hasOwnProperty(d.source.id)
         ? 6
         : 2)
-        .attr("marker-end", (d) => d.target?.message_stack && d.target.message_stack.hasOwnProperty(d.source.id)
+        .attr("marker-end", (d) => d.target?.messages && d.target.messages.hasOwnProperty(d.source.id)
         ? "url(#message-indicator)"
         : "url(#arrowhead)")
         .style("pointer-events", "none");
@@ -73,7 +73,7 @@ function updateGraph(system) {
         .attr("opacity", 0)
         .attr("pointer-events", "all")
         .on("mouseover", function (event, d) {
-        const message = d.target?.message_stack?.[d.source.id];
+        const message = d.target?.messages?.[d.source.id];
         if (message !== undefined) {
             tooltip
                 .style("display", "block")

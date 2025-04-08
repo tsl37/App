@@ -1,13 +1,29 @@
 #Simple leader election algorithm
 #Applicable a bidirectional circle
-#tokens structure (sender,distance,traveled)
+#tokens structure (sender,distance,traveled,dir)
 
 let phase = 0;
 let tokens = 2;
 let leader = 0;
 let nbrs = get_out_nbrs()
-let msgs = None
-msgs = get_messages()
+let senders = None;
+senders = get_messages();
+
+
+def get_directions() // calculates the directions of links
+{
+    output = {};
+    for out_nbr in get_out_nbrs()
+    {
+        for other in get_out_nbrs()
+        {
+            if(other !=out_nbr) output[out_nbr] = other
+        }
+    }
+    return output;
+}
+
+let other_dir = get_directions();
 
 def token_mine(token)
 {
@@ -20,53 +36,55 @@ def token_mine(token)
 
 def receive_tokens()
 {
-    for msg in get_messages()
+    for sender in get_messages()
     {
-        token = get_messages()[msg];
+        token = get_messages()[sender];
         if(!token_mine(token))
         {
             if(token[0] < get_uid())
             {
+                continue; //throw out
+            }
+            
+            if(token [3] == "backward")
+            {
+                send_message(other_dir[sender],token);
                 continue;
             }
-             if(token[2] == token[1])
-                {
-                    token = [token[0],token[1],token[2]+1]
-                    send_message(msg,token)
-                }
+            
+            if(token[1] > token[2]) 
+            {
+                token = [token[0],token[1],token[2]+1,token[3]];
+                send_message(other_dir[sender],token);
+                continue;
+            }
             else
             {
-            
-
-            for out_nbr in get_out_nbrs()
-            {
-                if(out_nbr != msg)
-                {
-                    token = [token[0],token[1],token[2]+1]
-                    send_message(out_nbr,token)
-                }
+                token = [token[0],token[1],token[2],"backward"];
+                send_message(sender,token);
+                continue;
             }
-            }
+        
         }
         else
         {
-            if(token[2]-token[1]>1)
+            if(token[3] == "forward")
             {
                 leader = 1;
-                
             }
             tokens = tokens +1;
         }
     }
 }
 
-
-
+if (leader == 1)
+{
+    halt()
+}
 
 if(tokens == 2)
 {
-   token = [get_uid(),pow(2,phase),1]
-
+   token = [get_uid(),pow(2,phase),1,"forward"]
    for out_nbr in get_out_nbrs()
    {
         tokens = tokens -1;
@@ -74,5 +92,4 @@ if(tokens == 2)
    }
    phase = phase + 1;
 }
-
 receive_tokens();

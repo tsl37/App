@@ -1,7 +1,8 @@
+import copy
 from pprint import pprint
 
 from dal.DALRunner import run
-from dal.Interpreter import ExecutionContext
+from dal.Interpreter import ExecutionContext, HaltException
 
 
 class Machine:
@@ -19,7 +20,7 @@ class Machine:
             str(self.UID): {
                 "state": self.memory,
                 "neighbors": list(map(lambda x: str(x.UID), self.neighbors)),
-                "message_stack" : self.incoming_messages
+                "messages" : self.incoming_messages
             }
         }
 
@@ -33,17 +34,19 @@ class Machine:
 
     def executeCode(self,code):
         context = ExecutionContext(
-            UID=self.UID,
-            out_nbrs=list(map(lambda x : x.UID,self.neighbors)),
+            UID=int(self.UID),
+            out_nbrs=list(map(lambda x : int(x.UID),self.neighbors)),
             variables=dict(self.memory),
-            incoming_messages=self.incoming_messages
+            incoming_messages=dict(self.incoming_messages)
             )
 
         context = run(code,context)
-        
-
+    
         self.memory = context.variables
         self.outgoing_messages = context.outgoing_messages
+        
+        if(context.halted == True):
+            raise HaltException("Machine halted")
 
         
 

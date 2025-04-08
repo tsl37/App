@@ -2,11 +2,11 @@
 class Machine extends Graph_Node {
     id;
     state;
-    message_stack;
-    constructor(id, state, message_stack) {
+    messages;
+    constructor(id, state, messages) {
         super(id);
         this.id = id;
         this.state = state;
-        this.message_stack = message_stack;
+        this.messages = messages;
     }
 }

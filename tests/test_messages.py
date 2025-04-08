@@ -6,11 +6,11 @@ class TestMessagePassing(unittest.TestCase):
     def test_message_passing_between_two_machines(self):
         # Define the shared code for both machines
         code = r"""
-        let x = get_UID();
+        let x = get_uid();
         let received_message = None;
-        if (len(get_messages()) > 0) {
-            received_message = get_messages()[0];
-        }
+        for sender in get_messages(){
+            received_message = get_messages()[sender];
+        } 
         send_message(get_out_nbrs()[0], x);
         """
 

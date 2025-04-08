@@ -15,9 +15,12 @@ class ReturnException(Exception):
 class InterpretError(Exception):
     def __init__(self, message):
         super().__init__(message)
+        
+class HaltException(Exception):
+    """Exception to signal halting the interpreter."""
+    pass
 
 allowed_functions = {
-    "print": print,
     "range": range,
     "max": max,
     "min": min,
@@ -33,6 +36,8 @@ allowed_functions = {
     "tuple" : tuple,
     "set" : set,
     "dict" : dict,
+    "type" : type,
+    
    
 }
 
@@ -43,14 +48,22 @@ class ExecutionContext:
         self.UID = UID
         self.incoming_messages = incoming_messages if incoming_messages != None else {}
         self.outgoing_messages = {}
-        self.halt = False
+        self.halted = False
         self.functions = allowed_functions.copy()
         self.out_nbrs = out_nbrs
-        self.functions.update({ "send_message": self.send_message, "get_messages": self.get_messages,"get_uid":self.get_uid,"get_out_nbrs":self.get_out_nbrs})
+        self.functions.update({ "send_message": self.send_message,
+                               "get_messages": self.get_messages,
+                               "get_uid":self.get_uid,
+                               "get_out_nbrs":self.get_out_nbrs,
+                               "halt":self.halt,})
 
     def __str__(self):
         return str(self.variables)
 
+    def halt(self):
+        raise HaltException()
+        
+    
     def set_var(self, name, value):
         self.variables[name] = value
 
@@ -108,7 +121,15 @@ class DALInterpreter(visitors.Interpreter):
         self.current_context().set_var(name, value)
 
     def start(self, tree):
-        self.visit_children(tree)
+        try:
+            self.visit_children(tree)
+        except HaltException:
+            self.global_context.halted = True
+            pass
+        except ContinueException:
+            pass
+        except Exception as e:
+            raise e
         return self.global_context
 
     def current_context(self):
@@ -128,6 +149,14 @@ class DALInterpreter(visitors.Interpreter):
             raise ReturnException(value)
         else:
             raise ReturnException()  
+    
+    def and_expression(self, tree):
+
+        return self.visit(tree.children[0]) and self.visit(tree.children[1])
+    
+    def or_expression(self, tree):
+        return self.visit(tree.children[0]) or self.visit(tree.children[1])
+    
        
     def push_context(self):
         self.call_stack.append(ExecutionContext())
@@ -141,12 +170,16 @@ class DALInterpreter(visitors.Interpreter):
         return value
 
     def assignment(self, tree):
+        target = tree.children[0]
+        value = self.visit(tree.children[1])  
 
-        name = self.visit(tree.children[0])
-
-        value = self.visit(tree.children[1])
-
-        self.set_var(name, value)
+        if target.data == "indexed_target": 
+            name, index = self.visit(target)
+            collection = self.get_var(name) 
+            collection[index] = value  
+        else:
+            name = self.visit(target)
+            self.set_var(name, value)
 
     def declaration(self, tree):
         name = self.visit(tree.children[0])
@@ -209,6 +242,9 @@ class DALInterpreter(visitors.Interpreter):
             except ContinueException:
                 self.pop_context()
                 continue
+            except Exception as e:
+                self.pop_context()
+                raise e
 
 
     def while_statement(self, tree):
@@ -223,8 +259,10 @@ class DALInterpreter(visitors.Interpreter):
                 break
             except ContinueException:
                 self.pop_context()
-                self.push_context()
                 continue
+            except Exception as e:
+                self.pop_context()
+                raise e
     
     def halt(self, tree):
         self.current_context().halt = True
@@ -244,7 +282,9 @@ class DALInterpreter(visitors.Interpreter):
         return tuple(self.visit(child) for child in tree.children)
 
     def indexed_target(self, tree):
-        return self.visit(tree.children[0])
+        name = tree.children[0].value  
+        index = self.visit(tree.children[1])  
+        return name, index
 
     def function_call(self, tree):
         name = self.visit(tree.children[0])
@@ -336,7 +376,7 @@ class DALInterpreter(visitors.Interpreter):
             self.pop_context()
             return e.value
         except Exception as e:
-            raise RuntimeError(f"Error in function '{name}': {str(e)}") from e
+            raise e
 
         return None 
     
@@ -363,15 +403,13 @@ class DALInterpreter(visitors.Interpreter):
     def visit(self, tree):
         try:
             return super().visit(tree)
-        except (ReturnException, BreakException, ContinueException):
-            raise
-        except InterpretError:
-            raise 
+        except (ReturnException, BreakException, ContinueException,InterpretError, HaltException) as e:
+            raise e
         except Exception as e:
             if isinstance(tree, Tree) and hasattr(tree, 'meta') and tree.meta:
                 position = f"Process with UID {self.global_context.get_uid()} at line {tree.meta.line}, column {tree.meta.column}"
-                raise InterpretError(f"{str(e)} {position}") 
-            raise InterpretError(str(e))
+                raise InterpretError(f" {type(e).__name__}  {str(e)} occured in {position}") 
+            raise InterpretError(f"{type(e).__name__}  {str(e)}")
 
 
 

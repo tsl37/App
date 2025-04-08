@@ -110,10 +110,7 @@ async function code_validity_check() {
 
     if (response.ok) {
         const data = await response.json();
-        if (data['success'] == false) {
-            console.log(data['error']);
-        }
-        return data['success'];
+        return data;
     } else {
         console.error('Failed to check syntax');
         return false;

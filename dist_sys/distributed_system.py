@@ -5,9 +5,12 @@
 from functools import reduce
 from pprint import pprint
 
+from flask import jsonify
+
+from dal.Interpreter import HaltException
 from dist_sys.machine import Machine
 
-
+previous = None 
 
 class DistributedSystem():
     def __init__(self,machines= None,code=None):
@@ -19,17 +22,14 @@ class DistributedSystem():
         machines = self.machines
         code = self.code
         
-      
-        
-        for machine in machines:
-            machine.executeCode(code)
-            machine.clear()
+        for machine in machines:    
+             machine.executeCode(code)
+             machine.clear()
 
         for machine in machines:
             machine.sendMessages()
             
-        pprint("Machines after:")
-        pprint(list(map(lambda x: x.dict,machines)))
+
             
         return DistributedSystem(machines,code)
             
@@ -38,7 +38,7 @@ class DistributedSystem():
         machines_dict = {}
         code = json_data["code"]
         machines_json = json_data["machines"]
-
+     
         for UID, machine_data in machines_json.items():
             UID = int(UID)
             
@@ -46,13 +46,12 @@ class DistributedSystem():
             machine = Machine(UID)
             state = machine_data.get("state", {})
             machine.memory = state
-            machine.incoming_messages = machine_data.get("message_stack", {})
+            messages = dict( machine_data.get("messages", {}))
+            machine.incoming_messages =  {int(k):(v) for k,v in messages.items()} 
+            
             machines_dict[UID] = machine
-            print(f"Machine {UID} state:")
-            pprint(state)
+          
             
-            
-      
         
         for UID, machine_data in machines_json.items():
             neighbor_ids = list(set(machine_data.get("neighbors", [])))
@@ -61,7 +60,7 @@ class DistributedSystem():
             ]
 
         machines = list(machines_dict.values())
-      
+       
         return DistributedSystem(machines,code)
     
     @property
@@ -78,6 +77,7 @@ class DistributedSystem():
         dict ={ }
         dict["machines"] = reduce(merge_dictionaries, tmp)
         dict["success"] = True
+        previous = dict.copy()
         return dict
         
         

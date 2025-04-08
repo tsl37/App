@@ -1,11 +1,7 @@
 start: (statement ";"?)+
 
-COMMENT: /#[^\n]*/
 
-%ignore COMMENT
-?statement: assignment | if_statement | while_statement | expression | declaration | for_statement | function | return | continue | break 
-
-assignment: target "=" expression 
+?statement: if_statement | while_statement | expression | declaration | for_statement | function | return | continue | break  | block |assignment  
 
 declaration.30: _LET " " target "=" expression
 
@@ -15,16 +11,15 @@ return.30: "return" expression -> return_statement
 continue.30: "continue" -> continue_statement
 break.30: "break" -> break_statement
 
-target.10: NAME  | NAME"[" expression "]" ->indexed_target
 
-if_statement: "if" "(" expression ")" "{" block"}" ("else" "{" block"}")?
 
-block: (statement ";"?)* 
+if_statement.30: _IF "(" expression ")" statement
+                |_IF "(" expression ")" statement _ELSE statement 
 
-_indexed_access.10: expression "[" expression "]" 
+_IF.30: "if"
+_ELSE.30: "else"
 
-access: target
-        |_indexed_access -> indexed_access
+block: "{" (statement ";"?)+ "}"
 
 array : "[" (expression ("," expression)*)? "]"
 tuple : "(" (expression ","( expression ("," expression)*)?) ")" -> tuple
@@ -39,20 +34,25 @@ comparison: expression "==" expression -> equals
          | expression "<" expression -> lesser
          | expression ">" expression -> greater
 
-while_statement: "while" "(" expression ")" "{" block "}"
+while_statement: "while" "(" expression ")" statement
 
-function.30 : _DEF target "(" targets? ")" "{" block "}" ->function_definition
+function.30 : _DEF target "(" targets? ")" block ->function_definition
 
 _DEF: "def"
 
-targets.10: target ("," target)*
+
 
 function_call.10: target "("( expression ("," expression)*)? ")"
 
-for_statement: "for" target "in" expression "{" block "}"
+for_statement.10: _FOR target _IN expression statement
+
+_FOR: "for" 
+_IN: "in"
 
 ?expression:  "-" expression -> negation
           | "!" expression -> inverse
+          | expression _AND expression -> and_expression
+          | expression _OR expression -> or_expression
           | comparison
           | length
           | array
@@ -65,7 +65,7 @@ for_statement: "for" target "in" expression "{" block "}"
 primary: literal
         | access
 
-literal.20: NUMBER -> number
+literal: NUMBER -> number
 | ESCAPED_STRING  -> string
 | bool 
 | "None" -> none
@@ -89,12 +89,28 @@ term: term "*" factor -> multiplication
 
 factor: "-" factor -> negation
     | primary
-    | "(" expression ")" -> grouped_expr // This enforces correct parenthesis behavior
+    | "(" expression ")" -> grouped_expr 
+
+
+target: NAME  | NAME "[" expression "]" ->indexed_target
+targets: target ("," target)*
+
+
+
+access: _indexed_access -> indexed_access
+        |target
+        
+_indexed_access: expression "[" expression "]" 
+assignment: target "=" expression 
+
+_AND: " &&"
+_OR: " ||"
 
 %import common.CNAME  -> NAME
 %import common.NUMBER
 %import common.ESCAPED_STRING
 %import common.WS
 %import common.NEWLINE -> NL
-
+COMMENT: /#[^\n]*/ | "//" /[^\n]*/
+%ignore COMMENT
 %ignore WS

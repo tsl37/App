@@ -26,7 +26,6 @@ def run(code,context = None):
     tree = tree_cache[code]
         
     interpreter = DALInterpreter(context=context)
-    
     context = interpreter.visit(tree)
     return context
 

@@ -6,6 +6,10 @@ let state = 0;
 let id = get_uid();
 let msg = None;
 
+if (leader == 1)
+{
+    halt()
+}
 
 if(state == 0)
 { 

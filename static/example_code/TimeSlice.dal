@@ -1,0 +1,40 @@
+##Leader election algorithm, that directly uses the synchronicity of the system
+##Uses a unidirectional cycle
+### the algorithm needs to know the size of the ring, change accordingly
+let size = 5
+### 
+
+let phase = 0;
+let i =0;
+let leader_known = False;
+let leader = False;
+
+
+for sender in get_messages()
+{
+    leader_known = True;
+    send_message(get_out_nbrs()[0],get_messages()[sender]);
+}
+
+if(leader && leader_known) halt();
+
+if(leader_known) continue;
+
+
+
+if(i == size)
+{
+    phase = phase +1;
+    i = 0;
+}
+
+if (phase == get_uid() && i == 0)
+{
+    leader = True;
+    send_message(get_out_nbrs()[0], get_uid() )
+}
+
+i = i+1;
+
+
+

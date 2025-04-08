@@ -1,5 +1,7 @@
 var interval:  NodeJS.Timeout;
 
+
+
 (document.getElementById('playSlider') as HTMLInputElement).checked = false;
 
 document.addEventListener("step", function () {
@@ -35,10 +37,23 @@ function clear_step_timeout() {
 function step_button(direction: string) {
     if (direction == "forward") {
         step_forward();
+        return
     }
-    else {
+   
+    if (direction == "backward") {
         step_backward();
+        return
     }
+    if (direction == "start") {
+        step_start();
+        return
+    }
+
+    if (direction == "end") {
+        step_end();
+        return
+    }
+
 }
 
 
@@ -53,10 +68,11 @@ function unfreeze_button() {
 
 
 async function start_simulation_button() {
+    stop_sim = false;
     var graph_valid = graph_validity_check();
     var code_valid = await code_validity_check();
 
-    if (graph_valid && code_valid) {
+    if (graph_valid && code_valid['success']) {
         var running_div = <HTMLElement>document.getElementById("running_div");
         var start_div = <HTMLElement>document.getElementById("start_div");
         running_div.hidden = false;
@@ -65,12 +81,14 @@ async function start_simulation_button() {
         start_simulation();
     }
     else {
-        BS_alert("Invalid graph or code.");
+        BS_alert("Invalid graph or code." + code_valid['error']);
     }
 }
 
 function stop_simulation_button() {
 
+    stop_simulation();
+    clear_step_timeout();
     clean_simulation();
     var running_div = <HTMLElement>document.getElementById("running_div");
     var start_div = <HTMLElement>document.getElementById("start_div");

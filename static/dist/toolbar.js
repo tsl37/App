@@ -31,9 +31,19 @@ function clear_step_timeout() {
 function step_button(direction) {
     if (direction == "forward") {
         step_forward();
+        return;
     }
-    else {
+    if (direction == "backward") {
         step_backward();
+        return;
+    }
+    if (direction == "start") {
+        step_start();
+        return;
+    }
+    if (direction == "end") {
+        step_end();
+        return;
     }
 }
 function freeze_button() {
@@ -43,9 +53,10 @@ function unfreeze_button() {
     unfreeze_animation();
 }
 async function start_simulation_button() {
+    stop_sim = false;
     var graph_valid = graph_validity_check();
     var code_valid = await code_validity_check();
-    if (graph_valid && code_valid) {
+    if (graph_valid && code_valid['success']) {
         var running_div = document.getElementById("running_div");
         var start_div = document.getElementById("start_div");
         running_div.hidden = false;
@@ -54,10 +65,12 @@ async function start_simulation_button() {
         start_simulation();
     }
     else {
-        BS_alert("Invalid graph or code.");
+        BS_alert("Invalid graph or code." + code_valid['error']);
     }
 }
 function stop_simulation_button() {
+    stop_simulation();
+    clear_step_timeout();
     clean_simulation();
     var running_div = document.getElementById("running_div");
     var start_div = document.getElementById("start_div");

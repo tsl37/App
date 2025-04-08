@@ -13,10 +13,10 @@ const tooltip = d3.select("body").append("div")
 function updateGraph(system: Distributed_System) {
     const data = distributed_system_to_object(system).machines;
     console.log("Graph updating");
-    nodes.forEach((node: { id: string | number; state: any; message_stack: any; }) => {
+    nodes.forEach((node: { id: string | number; state: any; messages: any; }) => {
         if (data[node.id]) {
             node.state = data[node.id].state;
-            node.message_stack = data[node.id].message_stack;
+            node.messages = data[node.id].messages;
         }
     });
 
@@ -67,17 +67,17 @@ function updateGraph(system: Distributed_System) {
 
     d3.select(".links").selectAll(".link")
     .attr("stroke", (d: any) =>
-        d.target?.message_stack && d.target.message_stack.hasOwnProperty(d.source.id)
+        d.target?.messages && d.target.messages.hasOwnProperty(d.source.id)
             ? "green"
             : "black"
     )
     .attr("stroke-width", (d: any) =>
-        d.target?.message_stack && d.target.message_stack.hasOwnProperty(d.source.id)
+        d.target?.messages && d.target.messages.hasOwnProperty(d.source.id)
             ? 6
             : 2
     )
     .attr("marker-end", (d: any) =>
-        d.target?.message_stack && d.target.message_stack.hasOwnProperty(d.source.id)
+        d.target?.messages && d.target.messages.hasOwnProperty(d.source.id)
             ? "url(#message-indicator)"
             : "url(#arrowhead)"
     )
@@ -92,7 +92,7 @@ d3.select(".links").selectAll(".hover-marker")
     .attr("opacity", 0) 
     .attr("pointer-events", "all") 
     .on("mouseover", function (event: MouseEvent, d: any) {
-        const message = d.target?.message_stack?.[d.source.id];
+        const message = d.target?.messages?.[d.source.id];
         if (message !== undefined) {
             tooltip
                 .style("display", "block")
