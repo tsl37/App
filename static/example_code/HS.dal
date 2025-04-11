@@ -1,23 +1,16 @@
 #Simple leader election algorithm
 #Applicable a bidirectional circle
-#tokens structure (sender,distance,traveled,dir)
+#tokens structure (sender,hops,direction)
 
 let phase = 0;
 let tokens = 2;
-let leader = 0;
-let nbrs = get_out_nbrs()
-let senders = None;
-senders = get_messages();
+let leader = False;
 
-
-def get_directions() // calculates the directions of links
-{
+def get_directions(){ // calculates the directions of links
     output = {};
-    for out_nbr in get_out_nbrs()
-    {
-        for other in get_out_nbrs()
-        {
-            if(other !=out_nbr) output[out_nbr] = other
+    for out_nbr in get_out_nbrs(){
+        for other in get_out_nbrs(){
+            if(other !=out_nbr) output[out_nbr] = other;
         }
     }
     return output;
@@ -25,70 +18,49 @@ def get_directions() // calculates the directions of links
 
 let other_dir = get_directions();
 
-def token_mine(token)
-{
-    if ( token[0] == get_uid() )
-    {
-        return True;
-    }
-    return False;
-}
+def receive_tokens(){
+    for sender in get_messages(){
 
-def receive_tokens()
-{
-    for sender in get_messages()
-    {
         token = get_messages()[sender];
-        if(!token_mine(token))
-        {
-            if(token[0] < get_uid())
-            {
-                continue; //throw out
+
+        if(token[0] == get_uid()){
+
+            if(token[2] == "forward"){
+                leader = True;
+            }
+            tokens = tokens +1;
+
+        }
+        else{
+             if(token[0] < get_uid()){
+                continue; //throw token out 
             }
             
-            if(token [3] == "backward")
-            {
+            if(token [2] == "backward"){
                 send_message(other_dir[sender],token);
                 continue;
             }
             
-            if(token[1] > token[2]) 
-            {
-                token = [token[0],token[1],token[2]+1,token[3]];
+            if(token[1] > 0){
+                token = (token[0],token[1]-1,token[2]);
                 send_message(other_dir[sender],token);
                 continue;
-            }
-            else
-            {
-                token = [token[0],token[1],token[2],"backward"];
+            }else{
+                token = (token[0],token[1],"backward");
                 send_message(sender,token);
                 continue;
             }
-        
-        }
-        else
-        {
-            if(token[3] == "forward")
-            {
-                leader = 1;
-            }
-            tokens = tokens +1;
         }
     }
 }
 
-if (leader == 1)
-{
-    halt()
-}
+if (leader) halt();
 
-if(tokens == 2)
-{
-   token = [get_uid(),pow(2,phase),1,"forward"]
-   for out_nbr in get_out_nbrs()
-   {
+if(tokens == 2){
+   token = (get_uid(),pow(2,phase),"forward");
+   for out_nbr in get_out_nbrs(){
         tokens = tokens -1;
-        send_message(out_nbr,token)
+        send_message(out_nbr,token);
    }
    phase = phase + 1;
 }

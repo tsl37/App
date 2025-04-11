@@ -1,7 +1,7 @@
-start: (statement ";"?)+
+start: (statement )+
 
 
-?statement: if_statement | while_statement | expression | declaration | for_statement | function | return | continue | break  | block |assignment  
+?statement: if_statement | while_statement | expression ";" | declaration ";" | for_statement | function | return ";" | continue ";" | break ";"  | block |assignment ";"  
 
 declaration.30: _LET " " target "=" expression
 
@@ -19,7 +19,7 @@ if_statement.30: _IF "(" expression ")" statement
 _IF.30: "if"
 _ELSE.30: "else"
 
-block: "{" (statement ";"?)+ "}"
+block: "{" (statement)+ "}"
 
 array : "[" (expression ("," expression)*)? "]"
 tuple : "(" (expression ","( expression ("," expression)*)?) ")" -> tuple
@@ -39,8 +39,6 @@ while_statement: "while" "(" expression ")" statement
 function.30 : _DEF target "(" targets? ")" block ->function_definition
 
 _DEF: "def"
-
-
 
 function_call.10: target "("( expression ("," expression)*)? ")"
 

@@ -23,7 +23,7 @@ class DistributedSystem():
         code = self.code
         
         for machine in machines:    
-             machine.executeCode(code)
+             machine.executeCode(code,system = self)
              machine.clear()
 
         for machine in machines:
@@ -62,6 +62,34 @@ class DistributedSystem():
         machines = list(machines_dict.values())
        
         return DistributedSystem(machines,code)
+    
+    @property
+    def diameter(self):
+        def bfs(machine):
+            visited = set()
+            queue = [(machine, 0)]
+            max_distance = 0
+
+            while queue:
+                current, distance = queue.pop(0)
+                if current not in visited:
+                    visited.add(current)
+                    max_distance = max(max_distance, distance)
+                    for neighbor in current.neighbors:
+                        if neighbor not in visited:
+                            queue.append((neighbor, distance + 1))
+
+            return max_distance
+
+        max_diameter = 0
+        for machine in self.machines:
+            max_diameter = max(max_diameter, bfs(machine))
+
+        return max_diameter
+    
+    @property
+    def size(self):
+        return len(self.machines)
     
     @property
     def dict(self):

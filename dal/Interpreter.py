@@ -1,3 +1,4 @@
+from random import choice, randint, randrange
 from lark import Lark, visitors, v_args, Token, Tree
 from lark.exceptions import VisitError
 from pprint import pprint
@@ -37,13 +38,15 @@ allowed_functions = {
     "set" : set,
     "dict" : dict,
     "type" : type,
-    
-   
+    "randrange" :randrange,
+    "randint" : randint,
+    "choice" : choice
 }
 
 
 class ExecutionContext:
-    def __init__(self, UID = None,out_nbrs = None, variables=None, incoming_messages=None):
+    def __init__(self, UID = None,out_nbrs = None, variables=None, incoming_messages=None,system=None):
+        self.system = system
         self.variables = variables if variables != None else {}
         self.UID = UID
         self.incoming_messages = incoming_messages if incoming_messages != None else {}
@@ -55,7 +58,9 @@ class ExecutionContext:
                                "get_messages": self.get_messages,
                                "get_uid":self.get_uid,
                                "get_out_nbrs":self.get_out_nbrs,
-                               "halt":self.halt,})
+                               "halt":self.halt,
+                               "diam":self.diam,
+                               "size":self.size,})
 
     def __str__(self):
         return str(self.variables)
@@ -63,6 +68,18 @@ class ExecutionContext:
     def halt(self):
         raise HaltException()
         
+    
+    def diam(self):
+        if self.system != None:
+            return self.system.diameter
+        else:
+            raise ValueError("System not defined in context")
+        
+    def size(self):
+        if self.system != None:
+            return self.system.size
+        else:
+            raise ValueError("System not defined in context")
     
     def set_var(self, name, value):
         self.variables[name] = value

@@ -28,9 +28,9 @@ def get_resource_path(relative_path):
 
 app = Flask(__name__)
 
+
 @app.route("/execute_step", methods=["POST"])
 def execute_step():
-    output = {}
     try:
         data = request.get_json()
         ds = None
@@ -85,7 +85,7 @@ def get_file():
     filename = data["file"]
     filename = get_resource_path(os.path.join("static", "example_code", filename))
     try:
-        with open(filename, "r") as file:
+        with open(filename, "r",encoding="utf-8") as file:
             response = {
                 "file": file.read()
             }

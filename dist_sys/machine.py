@@ -32,12 +32,13 @@ class Machine:
     def clear(self):
         self.incoming_messages = {}
 
-    def executeCode(self,code):
+    def executeCode(self,code,system=None):
         context = ExecutionContext(
             UID=int(self.UID),
             out_nbrs=list(map(lambda x : int(x.UID),self.neighbors)),
             variables=dict(self.memory),
-            incoming_messages=dict(self.incoming_messages)
+            incoming_messages=dict(self.incoming_messages),
+            system=system
             )
 
         context = run(code,context)
