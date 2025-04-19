@@ -1,6 +1,5 @@
 start: (statement )+
 
-
 ?statement: if_statement | while_statement | expression ";" | declaration ";" | for_statement | function | return ";" | continue ";" | break ";"  | block |assignment ";"  
 
 declaration.30: _LET " " target "=" expression
@@ -10,8 +9,6 @@ _LET: "let"
 return.30: "return" expression -> return_statement
 continue.30: "continue" -> continue_statement
 break.30: "break" -> break_statement
-
-
 
 if_statement.30: _IF "(" expression ")" statement
                 |_IF "(" expression ")" statement _ELSE statement 
@@ -25,9 +22,6 @@ array : "[" (expression ("," expression)*)? "]"
 tuple : "(" (expression ","( expression ("," expression)*)?) ")" -> tuple
 dictionary: "{" (dict_item ("," dict_item)*)? "}" -> dictionary
 dict_item: expression ":" expression -> dict_item
-
-length.10: target".length" -> length
-        
 
 comparison: expression "==" expression -> equals
          | expression "!=" expression -> not_equals
@@ -52,7 +46,6 @@ _IN: "in"
           | expression _AND expression -> and_expression
           | expression _OR expression -> or_expression
           | comparison
-          | length
           | array
           | tuple
           | dictionary
@@ -92,8 +85,6 @@ factor: "-" factor -> negation
 
 target: NAME  | NAME "[" expression "]" ->indexed_target
 targets: target ("," target)*
-
-
 
 access: _indexed_access -> indexed_access
         |target

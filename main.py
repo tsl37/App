@@ -96,13 +96,60 @@ def get_file():
     
     return jsonify(response)
 
+@app.route("/get_files", methods=["POST"])
+def get_files():
+    files = []
+    example_code_path = get_resource_path(os.path.join("static", "example_code"))
+    
+    for file in glob.glob(os.path.join(example_code_path, "*")):
+        files.append(os.path.split(file)[1])
+        
+    return jsonify(files)
+
+@app.route("/delete_file", methods=["POST"])
+def delete_file():
+    data = request.get_json()
+    filename = data["filename"]
+    filename = get_resource_path(os.path.join("static", "example_code", filename))
+    
+    try:
+        os.remove(filename)
+        response = {
+            "success": True
+        }
+    except Exception as e:
+        response = {
+            "error": str(e)
+        }
+    
+    return jsonify(response)
+
+@app.route("/save_file", methods=["POST"])
+def save_file():
+    data = request.get_json()
+    filename = data["filename"]
+    content = data["content"]
+    filename = get_resource_path(os.path.join("static", "example_code", filename))
+    
+    try:
+        with open(filename, "w",encoding="utf-8") as file:
+            file.write(content)
+        response = {
+            "success": True
+        }
+    except Exception as e:
+        response = {
+            "error": str(e)
+        }
+    
+    return jsonify(response)
 
 @app.route("/")
 def index():
     files = []
     example_code_path = get_resource_path(os.path.join("static", "example_code"))
     
-    for file in glob.glob(os.path.join(example_code_path, "*.dal")):
+    for file in glob.glob(os.path.join(example_code_path, "*")):
         files.append(os.path.split(file)[1])
         
     return render_template("index.html", files=files)

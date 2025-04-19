@@ -4,22 +4,19 @@ let max_uid = get_uid();
 let rounds = 0;
 let leader = None;
 
-for sender in get_messages()
-{
-    uid = get_messages[sender];
+if(leader) halt();
+
+for sender in get_messages(){
+    uid = get_messages()[sender];
     max_uid = max(uid,max_uid);
 }
 
-
-for out_nbr in get_out_nbrs()
-{
+for out_nbr in get_out_nbrs(){
     send_message(out_nbr,max_uid);
 }
 
 
-
-if(rounds == diam())
-{
+if(rounds == diam()){
     if(max_uid == get_uid()) leader = True;
     else
     leader = False;

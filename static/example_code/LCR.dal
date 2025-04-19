@@ -8,21 +8,21 @@ if (leader) halt();
 
 def init(){
     for nbr in get_out_nbrs(){
-        send_message(nbr,get_uid())
+        send_message(nbr,get_uid());
     }
     return None;
 }
 let x =  init(); // zajistí že se inicilizace provede jen na začátku 
 
 for sender in get_messages(){
-    msg = get_messages()[sender]
+    msg = get_messages()[sender];
 
     if(msg == get_uid()) leader = True;
     else{  
        if(msg >max_uid ){
             max_uid = msg;          
             for nbr in get_out_nbrs(){
-                send_message(nbr,max_uid)
+                send_message(nbr,max_uid);
             } 
         }   
     }

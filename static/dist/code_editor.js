@@ -1,5 +1,6 @@
 "use strict";
 let pinned_variables = [];
+let current_filename = "";
 var code_editor = ace.edit("code-editor");
 code_editor.setTheme("ace/theme/monokai");
 code_editor.session.setMode("ace/mode/c_cpp");
@@ -114,6 +115,7 @@ async function load_file(filename) {
         const data = await response.json();
         if (data.file) {
             code_editor.setValue(data.file, -1);
+            current_filename = filename;
             const offcanvas = document.getElementById('SaveOffCanvas');
             if (offcanvas) {
                 const bsOffcanvas = window.bootstrap?.Offcanvas.getInstance(offcanvas);
@@ -128,5 +130,101 @@ async function load_file(filename) {
         console.error('Failed to fetch file contents');
     }
 }
-function delete_file(filename) {
+async function delete_file(filename) {
+    const response = await fetch('/delete_file', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ "filename": filename })
+    });
+    if (response.ok) {
+        const data = await response.json();
+        if (data.success) {
+            console.log('File deleted successfully');
+            update_files();
+        }
+        else {
+            console.error('Failed to delete file:', data.error);
+        }
+    }
+    else {
+        console.error('Failed to delete file');
+    }
+}
+function save_button() {
+    const filename = prompt("Enter filename to save:", current_filename);
+    const file = code_editor.getValue();
+    if (filename && file) {
+        save_file(filename, file);
+    }
+    else {
+        console.error('Filename or file content is empty');
+    }
+}
+async function update_files() {
+    const response = await fetch('/get_files', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    });
+    if (response.ok) {
+        const files = await response.json();
+        const offcanvasBody = document.querySelector('#SaveOffCanvas .offcanvas-body');
+        if (offcanvasBody) {
+            offcanvasBody.innerHTML = '';
+            files.forEach((file) => {
+                const fileEntry = document.createElement('div');
+                fileEntry.classList.add('d-flex', 'justify-content-between', 'align-items-center', 'mb-2');
+                const fileNameSpan = document.createElement('span');
+                fileNameSpan.textContent = file;
+                const buttonGroup = document.createElement('div');
+                const loadButton = document.createElement('button');
+                loadButton.classList.add('btn', 'btn-primary', 'btn-sm');
+                loadButton.innerHTML = '<i class="bi bi-folder2-open"></i>';
+                loadButton.title = 'Load File';
+                loadButton.onclick = () => load_file(file);
+                const deleteButton = document.createElement('button');
+                deleteButton.classList.add('btn', 'btn-danger', 'btn-sm');
+                deleteButton.innerHTML = '<i class="bi bi-trash"></i>';
+                deleteButton.title = 'Delete File';
+                deleteButton.onclick = async () => {
+                    await delete_file(file);
+                    update_files();
+                };
+                buttonGroup.appendChild(loadButton);
+                buttonGroup.appendChild(deleteButton);
+                fileEntry.appendChild(fileNameSpan);
+                fileEntry.appendChild(buttonGroup);
+                offcanvasBody.appendChild(fileEntry);
+            });
+        }
+    }
+    else {
+        console.error('Failed to fetch file list');
+    }
+}
+async function save_file(filename, file) {
+    const response = await fetch('/save_file', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ "filename": filename, "content": file })
+    });
+    if (response.ok) {
+        const data = await response.json();
+        if (data.success) {
+            console.log('File saved successfully');
+            current_filename = filename;
+            update_files();
+        }
+        else {
+            console.error('Failed to save file:', data.error);
+        }
+    }
+    else {
+        console.error('Failed to save file');
+    }
 }

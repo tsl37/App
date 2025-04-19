@@ -22,11 +22,7 @@
 
 <body>
     <!-- Navigation Bar -->
-     
-    <div class="navbar">
-        <button class="btn btn-primary" onclick='freeze_button()' title="Freeze"><i class="bi bi-thermometer-snow"></i></button>
-        <button class="btn btn-primary" onclick='unfreeze_button()' title="Unfreeze"><i class="bi bi-thermometer-sun"></i></button>
-    </div>
+    <div class="navbar"></div>
 
     <div class="container">
         <!-- Sidebar -->
@@ -68,9 +64,8 @@
               
             </div>
             <div  style="position:absolute; top: 62px; right: 20px;">
-            <button class="btn btn-primary" onclick="randomise_button()" type="button" title="Confirm">
-                <i class="bi bi-check2"></i>
-            </button>
+                <button class="btn btn-primary" onclick='freeze_button()' title="Freeze"><i class="bi bi-thermometer-snow"></i></button>
+                <button class="btn btn-primary" onclick='unfreeze_button()' title="Unfreeze"><i class="bi bi-thermometer-sun"></i></button>
         </div>
         </div>
 
@@ -99,9 +94,12 @@
                 data-bs-target="#SaveOffCanvas" aria-controls="SaveOffCanvas" title="Save">
                 <i class="bi bi-list"></i>
             </button>
+            <button class="btn btn-primary"  onclick="save_button()" type="button" >
+                <i class="bi bi-floppy"></i>
+            </button>
                 <div class="offcanvas offcanvas-end" tabindex="-1" id="VariablePinOffCanvas" aria-labelledby="VariablePinOffCanvasLabel">
                     <div class="offcanvas-header">
-                        <h5 class="offcanvas-title" id="VariablePinOffCanvasLabel">Offcanvas</h5>
+                        <h5 class="offcanvas-title" id="VariablePinOffCanvasLabel">Choose variables to pin</h5>
                         <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
                     </div>
                     <div class="offcanvas-body" id='variable-list'></div>
@@ -109,10 +107,8 @@
 
                 <div class="offcanvas offcanvas-end" tabindex="-1" id="SaveOffCanvas" aria-labelledby="SaveOffCanvasLabel">
                     <div class="offcanvas-header">
-                        <h5 class="offcanvas-title" id="SaveOffCanvasLabel">saved files</h5>
-                        <button class="btn btn-primary" type="button" >
-                        <i class="bi bi-floppy"></i>
-                    </button>
+                        <h5 class="offcanvas-title" id="SaveOffCanvasLabel">Saved files</h5>
+                       
                         <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
                     </div>
                     <div class="offcanvas-body">
