@@ -112,23 +112,6 @@
                         <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
                     </div>
                     <div class="offcanvas-body">
-
-                    {% for file in files %}
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <span>{{ file }}</span>
-                        <div>
-                            <button class="btn btn-primary btn-sm" onclick="load_file('{{ file }}')" title="Load File">
-                                <i class="bi bi-folder2-open"></i>
-                            </button>
-                            <button class="btn btn-danger btn-sm" onclick="delete_file('{{ file }}')" title="Delete File">
-                                <i class="bi bi-trash"></i>
-                            </button>
-                        </div>
-                    </div>
-                    {% endfor %}
-                    
-
-
                     </div>
                 </div>
             </div>
@@ -161,17 +144,15 @@
     <!-- Bootstrap JS -->
     <script src="{{ url_for('static', filename='lib/bootstrap/bootstrap.bundle.min.js') }}"></script>
     <!-- Custom Scripts -->
-    <script src="{{ url_for('static', filename='dist/index.js' ) }}"></script>
-    <script src="{{ url_for('static', filename='dist/graph_drawing.js' ) }}"></script>
-    <script src="{{ url_for('static', filename='dist/graph_update.js' ) }}"></script>
+   
+    <script src="{{ url_for('static', filename='dist/GraphVisualizer.js' ) }}"></script>
     <script src="{{ url_for('static', filename='dist/graph_shapes.js' ) }}"></script>
-    <script src="{{ url_for('static', filename='dist/graph_node.js' ) }}"></script>
     <script src="{{ url_for('static', filename='dist/network_comm.js' ) }}"></script>
-    <script src="{{ url_for('static', filename='dist/code_editor.js' ) }}"></script>
-    <script src="{{ url_for('static', filename='dist/node_editor.js' ) }}"></script>
-    <script src="{{ url_for('static', filename='dist/machine.js' ) }}"></script>
-    <script src="{{ url_for('static', filename='dist/distributed_system.js' ) }}"></script>
+    <script src="{{ url_for('static', filename='dist/CodeEditor.js' ) }}"></script>
+    <script src="{{ url_for('static', filename='dist/GraphEditor.js' ) }}"></script>
+    <script src="{{ url_for('static', filename='dist/SynchronousNetwork.js' ) }}"></script>
     <script src="{{ url_for('static', filename='dist/toolbar.js' ) }}"></script>
+    <script src="{{ url_for('static', filename='dist/SimulationRuntime.js' ) }}"></script>
     
 </body>
 </html>

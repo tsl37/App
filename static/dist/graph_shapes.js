@@ -1,4 +1,3 @@
-"use strict";
 function circle(numNodes, directed) {
     let nodes = {};
     for (var i = 0; i < numNodes; i++)

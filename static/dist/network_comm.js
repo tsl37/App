@@ -1,4 +1,3 @@
-"use strict";
 const step_event = new Event("step");
 let isStepping = false;
 let stop_sim = false;
@@ -75,7 +74,7 @@ async function step_end() {
 async function get_next_step() {
     var distributed_system = global_context.distributed_system_states[global_context.steps];
     var current_step = global_context.steps;
-    const code = code_editor.getValue();
+    const code = codeEditor.getValue();
     distributed_system.code = code;
     var system = distributed_system_to_json(distributed_system);
     var data = { ...system };
@@ -151,10 +150,10 @@ async function fetch_next_step(payload) {
     }
 }
 function json_to_distributed_system(json) {
-    const system = new Distributed_System(json.code);
+    const system = new SynchronousNetwork(json.code);
     var machines = Object.entries(json.machines);
     machines.forEach((machine) => {
-        const node = new Machine(machine[0], machine[1].state, machine[1].messages);
+        const node = new Process(machine[0], machine[1].state, machine[1].messages);
         system.graph.addNode(node);
     });
     machines.forEach((machine) => {
